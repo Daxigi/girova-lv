@@ -13,6 +13,32 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
+     * @var string
+     */
+    
+    protected $table = 'public.User';
+
+    /**
+     * @var bool
+     */
+
+    public $timestamps = false;
+
+    /**
+     * Indicates if the model's ID is auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
+    /**
+     * The data type of the auto-incrementing ID.
+     *
+     * @var string
+     */
+    protected $keyType = 'string';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -44,5 +70,12 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function roles(): BelongsToMany
+    {
+        // Se declara la relacion User y Role, seria la intermedia user_roles
+        // se especifican las columnas por que los IDS son UUIDS
+        return $this->belongsToMany(Role::class, 'role_user', 'user_id', 'role_id');
     }
 }
