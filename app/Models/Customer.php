@@ -3,14 +3,25 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Customer extends Model
 {
-    //
-        /**
+    /**
      * @var string
      */
     protected $table = 'Customer';
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'phone',
+    ];
 
     /**
      * Indicates if the model's ID is auto-incrementing.
@@ -34,6 +45,6 @@ class Customer extends Model
     //Un cliente puede tener muchas ordenes
     public function orders(): HasMany
     {
-        return $this->hasMany(Order::class. 'customer_id', 'id');
+        return $this->hasMany(Order::class, 'customer_id', 'id');
     }
 }

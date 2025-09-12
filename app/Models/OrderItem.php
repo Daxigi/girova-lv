@@ -3,14 +3,26 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrderItem extends Model
 {
-    //
-        /**
+    /**
      * @var string
      */
     protected $table = 'OrderItem';
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'order_id',
+        'product_id',
+        'quantity',
+        'price',
+    ];
 
     public $incrementing = false;
    
@@ -24,6 +36,6 @@ class OrderItem extends Model
     // un item esta asociado a un producto
     public function product(): BelongsTo
     {
-        return $this->belognsTo(Product::class, 'product_id', 'id');
+        return $this->belongsTo(Product::class, 'product_id', 'id');
     }
 }
