@@ -1,5 +1,5 @@
 <script setup>
-import { useForm } from '@inertiajs/vue3';
+import { useForm, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import { ref } from 'vue';
 
@@ -37,36 +37,60 @@ const form = useForm({
 });
 
 async function submit() {
-    if (imageFile.value) {
-        isUploading.value = true;
-        const formData = new FormData();
-        formData.append('file', imageFile.value);
-        formData.append('upload_preset', cloudinaryUploadPreset);
+    form.processing = true; // Activar el estado de procesamiento
+    try {
+        if (imageFile.value) {
+            isUploading.value = true;
+            const formData = new FormData();
+            formData.append('file', imageFile.value);
+            formData.append('upload_preset', cloudinaryUploadPreset);
 
-        try {
-            const response = await axios.post(
-                `https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/image/upload`,
-                formData
-            );
-            form.imageUrl = response.data.secure_url;
-        } catch (error) {
-            console.error('Error al subir la imagen', error);
-            alert('Hubo un error al subir la imagen. El producto no se guardará.');
-            isUploading.value = false;
-            return; // Detener el envío del formulario si la imagen falla
-        } finally {
-            isUploading.value = false;
+            try {
+                const response = await axios.post(
+                    `https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/image/upload`,
+                    formData
+                );
+                form.imageUrl = response.data.secure_url;
+            } catch (error) {
+                console.error('Error al subir la imagen', error);
+                alert('Hubo un error al subir la imagen. El producto no se guardará.');
+                isUploading.value = false;
+                form.processing = false; // Desactivar procesamiento en caso de error
+                return; // Detener el envío del formulario si la imagen falla
+            } finally {
+                isUploading.value = false;
+            }
         }
-    }
 
-    form.post('/api/products', {
-        onSuccess: () => {
-            // Limpiar el formulario o redirigir
-            form.reset();
-            imageUrl.value = '';
-            imageFile.value = null;
-        },
-    });
+        // Enviar el formulario a la API
+        await axios.post('/api/products', form.data());
+
+        // Si todo fue bien, navegar y mostrar mensaje de éxito
+        router.visit('/products/create', {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                form.reset();
+                imageUrl.value = '';
+                imageFile.value = null;
+                alert('Producto creado exitosamente!'); // O usar un flash message de Inertia
+            },
+            onError: (errors) => {
+                form.errors = errors; // Asignar errores si los hay
+            }
+        });
+
+    } catch (error) {
+        console.error('Error al crear el producto', error);
+        // Manejar errores de validación o de la API
+        if (error.response && error.response.data && error.response.data.errors) {
+            form.errors = error.response.data.errors; // Asignar errores de validación
+        } else {
+            alert('Hubo un error al crear el producto.');
+        }
+    } finally {
+        form.processing = false; // Desactivar el estado de procesamiento al finalizar
+    }
 }
 </script>
 

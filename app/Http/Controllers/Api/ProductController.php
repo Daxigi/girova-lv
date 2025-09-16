@@ -4,23 +4,26 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
-use App\Models\Product;
+use App\Services\ProductService;
 use Exception;
-use Inertia\Inertia;
-use App\Models\Category;
-use App\Models\Type;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    protected $productService;
+
+    public function __construct(ProductService $productService)
+    {
+        $this->productService = $productService;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
         try {
-            // Consider eager loading relationships if they are used in the response
-            // $products = Product::with(['category', 'type'])->get();
-            $products = Product::all();
+            $products = $this->productService->getAllProducts();
 
             return response()->json($products, 200);
         } catch (Exception $e) {
@@ -37,9 +40,9 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request)
     {
         try {
-            $product = Product::create($request->validated());
+            $product = $this->productService->createProduct($request->validated());
 
-            return redirect('/products/create')->with('success', 'Producto creado exitosamente!');
+            return response()->json($product, 201);
         } catch (Exception $e) {
             return response()->json([
                 'message' => 'Ocurrio un error al crear el producto',
@@ -49,26 +52,11 @@ class ProductController extends Controller
     }
 
     /**
-     * NOTE: This method is returning an Inertia view, which is not typical for an API controller.
-     * Consider moving this to a dedicated web controller (e.g., ProductController under App\Http\Controllers\Web).
-     */
-    public function create()
-    {
-        $categories = Category::all();
-        $types = Type::all();
-
-        return Inertia::render('Products/Create', [
-            'categories' => $categories,
-            'types' => $types,
-        ]);
-    }
-
-    /**
      * Display the specified resource.
      */
     public function show(string $id)
     {
-        //
+        // Implementar usando $this->productService->getProductById($id);
     }
 
     /**
@@ -76,7 +64,7 @@ class ProductController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        // Implementar usando $this->productService->updateProduct($id, $request->validated());
     }
 
     /**
@@ -84,6 +72,6 @@ class ProductController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        // Implementar usando $this->productService->deleteProduct($id);
     }
 }
