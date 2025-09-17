@@ -56,15 +56,43 @@ class ProductController extends Controller
      */
     public function show(string $id)
     {
-        // Implementar usando $this->productService->getProductById($id);
+        try {
+            $product = $this->productService->getProductById((int)$id);
+
+            if (!$product) {
+                return response()->json(['message' => 'Producto no encontrado'], 404);
+            }
+
+            return response()->json($product, 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Ocurrio un error al obtener el producto.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(StoreProductRequest $request, string $id)
     {
-        // Implementar usando $this->productService->updateProduct($id, $request->validated());
+        try {
+            $updated = $this->productService->updateProduct((int)$id, $request->validated());
+
+            if (!$updated) {
+                return response()->json(['message' => 'Producto no encontrado para actualizar'], 404);
+            }
+
+            $product = $this->productService->getProductById((int)$id);
+            return response()->json($product, 200);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Ocurrio un error al actualizar el producto',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -72,6 +100,20 @@ class ProductController extends Controller
      */
     public function destroy(string $id)
     {
-        // Implementar usando $this->productService->deleteProduct($id);
+        try {
+            $deleted = $this->productService->deleteProduct((int)$id);
+
+            if (!$deleted) {
+                return response()->json(['message' => 'Producto no encontrado para eliminar'], 404);
+            }
+
+            return response()->json(null, 204);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Ocurrio un error al eliminar el producto',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

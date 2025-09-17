@@ -2,6 +2,7 @@
 namespace App\Services;
 
 use App\Repositories\Contracts\ProductRepositoryInterface;
+use Illuminate\Database\Eloquent\Collection;
 use App\Models\Product;
 
 class ProductService
@@ -26,5 +27,15 @@ class ProductService
     public function getProductById(int $id): ?Product
     {
         return $this->productRepository->find($id);
+    }
+
+    public function updateProduct(int $id, array $data): bool
+    {
+        return $this->productRepository->update($id, $data);
+    }
+
+    public function deleteProduct(int $id): bool
+    {
+        return $this->productRepository->delete($id);
     }
 }
