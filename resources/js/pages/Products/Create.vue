@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { useForm, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import { ref } from 'vue';
