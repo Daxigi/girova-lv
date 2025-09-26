@@ -10,7 +10,7 @@ class Customer extends Model
     /**
      * @var string
      */
-    protected $table = 'Customer';
+    protected $table = 'customers';
 
     /**
      * The attributes that are mass assignable.

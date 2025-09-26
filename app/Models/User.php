@@ -17,7 +17,7 @@ class User extends Authenticatable
      * @var string
      */
     
-    protected $table = 'public.User';
+        protected $table = 'users';
 
     /**
      * @var bool
@@ -73,10 +73,10 @@ class User extends Authenticatable
         ];
     }
 
-    public function roles(): BelongsToMany
-    {
-        // Se declara la relacion User y Role, seria la intermedia user_roles
-        // se especifican las columnas por que los IDS son UUIDS
-        return $this->belongsToMany(Role::class, 'role_user', 'user_id', 'role_id');
-    }
+    // public function roles(): BelongsToMany
+    // {
+    //     // Se declara la relacion User y Role, seria la intermedia user_roles
+    //     // se especifican las columnas por que los IDS son UUIDS
+    //     return $this->belongsToMany(roles::class, 'role_user', 'user_id', 'role_id');
+    // }
 }

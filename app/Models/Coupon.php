@@ -19,7 +19,7 @@ class Coupon extends Model
     /**
      * @var string
      */
-    protected $table = 'Coupon';
+    protected $table = 'coupons';
 
     public $incrementing = false;
     

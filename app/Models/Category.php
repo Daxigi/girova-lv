@@ -17,5 +17,5 @@ class Category extends Model
      * @var string
      */
 
-     protected $table = 'Categories';
+          protected $table = 'categories';
 }

@@ -10,7 +10,7 @@ class OrderItem extends Model
     /**
      * @var string
      */
-    protected $table = 'OrderItem';
+    protected $table = 'orderitems';
 
     /**
      * The attributes that are mass assignable.

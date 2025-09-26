@@ -16,5 +16,5 @@ class Payment extends Model
     /**
      * @var string
      */
-    protected $table = 'Payment';
+    protected $table = 'payments';
 }
