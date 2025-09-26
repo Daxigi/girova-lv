@@ -31,9 +31,9 @@ const filteredProducts = computed(() => {
 
 <template>
   <Head title="Welcome" />
-  <div class="container mx-auto p-6">
-    <h1 class="text-2xl font-bold text-gray-800 mb-8 text-center">¡Bienvenido a MiTienda!</h1>
+  <v-container>
+    <h1 class="text-h4 text-center mb-8">¡Bienvenido a MiTienda!</h1>
     <ProductSearch v-model="searchTerm" />
     <ProductGrid :products="filteredProducts" />
-  </div>
+  </v-container>
 </template>

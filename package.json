@@ -24,6 +24,7 @@
     },
     "dependencies": {
         "@inertiajs/vue3": "^2.0.0",
+        "@mdi/font": "^7.4.47",
         "@tailwindcss/vite": "^4.1.11",
         "@vitejs/plugin-vue": "^6.0.0",
         "@vueuse/core": "^12.8.2",
@@ -32,11 +33,14 @@
         "clsx": "^2.1.1",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^2.0.0",
+        "sass": "^1.93.2",
         "tailwind-merge": "^3.2.0",
         "tailwindcss": "^4.1.1",
         "typescript": "^5.2.2",
         "vite": "^7.0.4",
+        "vite-plugin-vuetify": "^2.1.2",
         "vue": "^3.5.13",
+        "vuetify": "^3.10.3",
         "ziggy-js": "^2.4.2"
     },
     "optionalDependencies": {

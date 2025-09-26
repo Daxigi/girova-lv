@@ -21,6 +21,9 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::get('/', function(){
+    return Inertia::render('tecnologies');})->name('test');
+
 
 Route::get('/products/create', [WebProductController::class, 'create'])->name('products.create');
 
