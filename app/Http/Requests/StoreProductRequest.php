@@ -28,10 +28,10 @@ class StoreProductRequest extends FormRequest
             'price' => 'required|numeric|min:0',
             'purchasePrice' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'imageUrl' => 'required|url',
+            'imageUrl' => 'nullable|url',
             'status' => 'boolean',
-            'CategoryId' => ['nullable', 'integer', Rule::exists('Categories', 'id')],
-            'TypeId' => ['nullable', 'integer', Rule::exists('Types', 'id')],
+            'category_id' => ['required', 'integer', Rule::exists('categories', 'id')],
+            'type_id' => ['required', 'integer', Rule::exists('types', 'id')],
         ];
     }
 }

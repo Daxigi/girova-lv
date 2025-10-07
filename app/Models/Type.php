@@ -14,7 +14,9 @@ class Type extends Model
     protected $guarded = [];
 
     /**
+     * The table associated with the model.
+     *
      * @var string
      */
-        protected $table = 'types';
+    protected $table = 'types';
 }

@@ -14,8 +14,9 @@ class Category extends Model
     protected $guarded = [];
 
     /**
+     * The table associated with the model.
+     *
      * @var string
      */
-
-          protected $table = 'categories';
+    protected $table = 'categories';
 }

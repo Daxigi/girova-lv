@@ -1,185 +1,275 @@
 <script setup lang="ts">
-import { useForm, router } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
 import axios from 'axios';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
+import { computed } from 'vue';
+
+// Props
+const props = defineProps({
+    categories: Array as () => any[],
+    types: Array as () => any[],
+    product: Object as () => any | undefined,
+});
+
+// Cloudinary config
 const cloudinaryCloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const cloudinaryUploadPreset = import.meta.env.VITE_UPLOAD_PRESET;
 
-const imageFile = ref(null);
-const imageUrl = ref('');
+// Determine if it's an edit form
+const isEdit = computed(() => !!props.product);
+
+// Form state
+const formRef = ref<any>(null);
+const form = useForm({
+    name: props.product?.name || '',
+    description: props.product?.description || '',
+    price: props.product?.price || null,
+    purchasePrice: props.product?.purchasePrice || null,
+    stock: props.product?.stock || null,
+    imageUrl: props.product?.imageUrl || '',
+    status: props.product?.status ?? true,
+    category_id: props.product?.category_id || null,
+    type_id: props.product?.type_id || null,
+});
+
+// Image handling state
+const imageFile = ref<File | null>(null);
+const imageUrl = ref(props.product?.imageUrl || ''); // Set initial image for preview
 const isUploading = ref(false);
 
-function handleImageSelected(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+// Validation rules
+const rules = {
+    required: (value: any) => !!value || 'Este campo es requerido.',
+    number: (value: any) => !isNaN(parseFloat(value)) && isFinite(value) || 'Debe ser un número.'
+};
 
-    imageFile.value = file;
-    // Crear una URL local para la vista previa
-    imageUrl.value = URL.createObjectURL(file);
-}
-
-const props = defineProps({
-    categories: Array,
-    types: Array,
+// Watch for image selection to update the preview
+watch(imageFile, (newFile) => {
+    if (newFile) {
+        imageUrl.value = URL.createObjectURL(newFile);
+    } else {
+        imageUrl.value = '';
+    }
 });
 
-const form = useForm({
-    name: '',
-    description: '',
-    price: null,
-    purchasePrice: null,
-    stock: null,
-    imageUrl: '',
-    status: true,
-    CategoryId: null,
-    TypeId: null,
-});
-
+// Form submission logic
 async function submit() {
-    form.processing = true; // Activar el estado de procesamiento
-    try {
-        if (imageFile.value) {
-            isUploading.value = true;
-            const formData = new FormData();
-            formData.append('file', imageFile.value);
-            formData.append('upload_preset', cloudinaryUploadPreset);
+    const { valid } = await formRef.value.validate();
+    if (!valid) return;
 
-            try {
-                const response = await axios.post(
-                    `https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/image/upload`,
-                    formData
-                );
-                form.imageUrl = response.data.secure_url;
-            } catch (error) {
-                console.error('Error al subir la imagen', error);
-                alert('Hubo un error al subir la imagen. El producto no se guardará.');
-                isUploading.value = false;
-                form.processing = false; // Desactivar procesamiento en caso de error
-                return; // Detener el envío del formulario si la imagen falla
-            } finally {
-                isUploading.value = false;
-            }
+    form.processing = true;
+
+    // If a new image file is selected, upload it to Cloudinary first.
+    if (imageFile.value) {
+        isUploading.value = true;
+        const cloudFormData = new FormData();
+        cloudFormData.append('file', imageFile.value);
+        cloudFormData.append('upload_preset', cloudinaryUploadPreset);
+
+        try {
+            const response = await axios.post(
+                `https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/image/upload`,
+                cloudFormData
+            );
+            // Update form's imageUrl with the new URL
+            form.imageUrl = response.data.secure_url;
+        } catch (error: any) {
+            console.error('Error al subir la imagen', error);
+            form.setError('imageUrl', 'Error al subir la imagen a Cloudinary.');
+            isUploading.value = false;
+            form.processing = false;
+            return;
+        } finally {
+            isUploading.value = false;
         }
+    }
 
-        // Enviar el formulario a la API
-        await axios.post('/api/products', form.data());
-
-        // Si todo fue bien, navegar y mostrar mensaje de éxito
-        router.visit('/products/create', {
+    if (isEdit.value) {
+        // UPDATE logic
+        form.put(route('products.update', props.product.id), {
             preserveScroll: true,
-            preserveState: true,
             onSuccess: () => {
-                form.reset();
-                imageUrl.value = '';
-                imageFile.value = null;
-                alert('Producto creado exitosamente!'); // O usar un flash message de Inertia
+                alert('Producto actualizado exitosamente!');
             },
             onError: (errors) => {
-                form.errors = errors; // Asignar errores si los hay
+                form.errors = errors;
+            },
+            onFinish: () => {
+                form.processing = false;
             }
         });
+    } else {
+        // CREATE logic
+        form.post(route('products.store'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                form.reset();
+                imageFile.value = null;
+                imageUrl.value = '';
+                alert('Producto creado exitosamente!');
+            },
+            onError: (errors) => {
+                form.errors = errors;
+            },
+            onFinish: () => {
+                form.processing = false;
+            }
+        });
+    }
+}
 
-    } catch (error) {
-        console.error('Error al crear el producto', error);
-        // Manejar errores de validación o de la API
-        if (error.response && error.response.data && error.response.data.errors) {
-            form.errors = error.response.data.errors; // Asignar errores de validación
-        } else {
-            alert('Hubo un error al crear el producto.');
-        }
-    } finally {
-        form.processing = false; // Desactivar el estado de procesamiento al finalizar
+function forceDeleteProduct() {
+    if (confirm('¿Estás seguro de que quieres eliminar este producto permanentemente? Esta acción no se puede deshacer.')) {
+        form.delete(route('products.force-destroy', props.product.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                alert('Producto eliminado permanentemente.');
+            }
+        });
     }
 }
 </script>
 
 <template>
-    <div class="max-w-2xl mx-auto p-8 bg-white shadow-lg rounded-lg mt-10">
-        <h1 class="text-2xl font-bold mb-6 text-gray-800">Crear Nuevo Producto</h1>
-        
-        <form @submit.prevent="submit">
-            <div class="mb-4">
-                <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Nombre del Producto:</label>
-                <input v-model="form.name" type="text" id="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                <div v-if="form.errors.name" class="text-red-500 text-xs mt-1">{{ form.errors.name }}</div>
-            </div>
+    <v-container>
+        <v-card class="mx-auto" max-width="800">
+                            <v-card-title class="text-h5 pa-4 bg-primary">
+                                {{ isEdit ? 'Editar Producto' : 'Crear Nuevo Producto' }}
+                            </v-card-title>            <v-card-text class="pa-5">
+                <v-form ref="formRef" @submit.prevent="submit">
+                    <v-text-field
+                        v-model="form.name"
+                        label="Nombre del Producto"
+                        variant="outlined"
+                        density="compact"
+                        :rules="[rules.required]"
+                        :error-messages="form.errors.name"
+                        class="mb-4"
+                    ></v-text-field>
 
-            <div class="mb-4">
-                <label for="description" class="block text-gray-700 text-sm font-bold mb-2">Descripción:</label>
-                <textarea v-model="form.description" id="description" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
-                <div v-if="form.errors.description" class="text-red-500 text-xs mt-1">{{ form.errors.description }}</div>
-            </div>
+                    <v-textarea
+                        v-model="form.description"
+                        label="Descripción"
+                        variant="outlined"
+                        density="compact"
+                        :error-messages="form.errors.description"
+                        class="mb-4"
+                    ></v-textarea>
 
-            <div class="mb-4">
-                <label for="price" class="block text-gray-700 text-sm font-bold mb-2">Precio:</label>
-                <input v-model.number="form.price" type="number" id="price" step="0.01" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                <div v-if="form.errors.price" class="text-red-500 text-xs mt-1">{{ form.errors.price }}</div>
-            </div>
+                    <v-row>
+                        <v-col cols="12" md="6">
+                            <v-text-field
+                                v-model.number="form.price"
+                                label="Precio de Venta"
+                                type="number"
+                                prefix="$"
+                                variant="outlined"
+                                density="compact"
+                                :rules="[rules.required, rules.number]"
+                                :error-messages="form.errors.price"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col cols="12" md="6">
+                            <v-text-field
+                                v-model.number="form.purchasePrice"
+                                label="Precio de Compra"
+                                type="number"
+                                prefix="$"
+                                variant="outlined"
+                                density="compact"
+                                :rules="[rules.required, rules.number]"
+                                :error-messages="form.errors.purchasePrice"
+                            ></v-text-field>
+                        </v-col>
+                    </v-row>
 
-            <div class="mb-4">
-                <label for="purchasePrice" class="block text-gray-700 text-sm font-bold mb-2">Precio de compra:</label>
-                <input v-model.number="form.purchasePrice" type="number" id="purchasePrice" step="0.01" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                <div v-if="form.errors.purchasePrice" class="text-red-500 text-xs mt-1">{{ form.errors.purchasePrice }}</div>
-            </div>
+                    <v-row>
+                        <v-col cols="12" md="6">
+                            <v-text-field
+                                v-model.number="form.stock"
+                                label="Stock"
+                                type="number"
+                                variant="outlined"
+                                density="compact"
+                                :rules="[rules.required, rules.number]"
+                                :error-messages="form.errors.stock"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col cols="12" md="6">
+                            <v-file-input
+                                v-model="imageFile"
+                                label="Imagen del Producto"
+                                accept="image/*"
+                                variant="outlined"
+                                density="compact"
+                                :error-messages="form.errors.imageUrl"
+                                prepend-icon="mdi-camera"
+                            ></v-file-input>
+                        </v-col>
+                    </v-row>
+                    
+                    <v-img v-if="imageUrl" :src="imageUrl" width="128" height="128" class="mb-4 rounded border"></v-img>
 
-            <div class="mb-4">
-                <label for="stock" class="block text-gray-700 text-sm font-bold mb-2">Stock:</label>
-                <input v-model.number="form.stock" type="number" id="stock" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                <div v-if="form.errors.stock" class="text-red-500 text-xs mt-1">{{ form.errors.stock }}</div>
-            </div>
+                    <v-row>
+                        <v-col cols="12" md="6">
+                                                            <v-select
+                                                                v-model="form.category_id"
+                                                                :items="props.categories"
+                                                                item-title="name"
+                                                                item-value="id"
+                                                                label="Categoría"
+                                                                variant="outlined"
+                                                                density="compact"
+                                                                :rules="[rules.required]"
+                                                                :error-messages="form.errors.category_id"
+                                                            ></v-select>
+                                                        </v-col>
+                                                        <v-col cols="12" md="6">
+                                                            <v-select
+                                                                v-model="form.type_id"
+                                                                :items="props.types"
+                                                                item-title="name"
+                                                                item-value="id"
+                                                                label="Tipo"
+                                                                variant="outlined"
+                                                                density="compact"
+                                                                :rules="[rules.required]"
+                                                                :error-messages="form.errors.type_id"
+                                                            ></v-select>                        </v-col>
+                    </v-row>
 
-            <div class="mb-6">
-                <label for="imageFile" class="block text-gray-700 text-sm font-bold mb-2">Imagen del Producto:</label>
-                <input 
-                    type="file"
-                    id="imageFile"
-                    @input="handleImageSelected"
-                    accept="image/*"
-                    class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                />
-                <div v-if="form.errors.imageUrl" class="text-red-500 text-xs mt-1">{{ form.errors.imageUrl }}</div>
+                    <v-checkbox v-model="form.status" label="Activo" density="compact"></v-checkbox>
 
-                <div v-if="imageUrl" class="mt-4">
-                  <img :src="imageUrl" alt="Vista previa de la imagen" class="w-32 h-32 object-cover rounded">
-                </div>
-            </div>
+                    <v-divider class="my-4"></v-divider>
 
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label for="category_id" class="block text-gray-700 text-sm font-bold mb-2">Categoría:</label>
-                    <select v-model="form.category_id" id="category_id" class="shadow border rounded w-full py-2 px-3 text-gray-700">
-                        <option :value="null" disabled>Selecciona una categoría</option>
-                        <option v-for="category in props.categories" :key="category.id" :value="category.id">
-                            {{ category.description }}
-                        </option>
-                    </select>
-                    <div v-if="form.errors.category_id" class="text-red-500 text-xs mt-1">{{ form.errors.category_id }}</div>
-                </div>
-                <div>
-                    <label for="type_id" class="block text-gray-700 text-sm font-bold mb-2">Tipo:</label>
-                    <select v-model="form.type_id" id="type_id" class="shadow border rounded w-full py-2 px-3 text-gray-700">
-                        <option :value="null" disabled>Selecciona un tipo</option>
-                        <option v-for="type in props.types" :key="type.id" :value="type.id">
-                            {{ type.description }}
-                        </option>
-                    </select>
-                    <div v-if="form.errors.type_id" class="text-red-500 text-xs mt-1">{{ form.errors.type_id }}</div>
-                </div>
-            </div>
+                    <div class="d-flex justify-space-between">
+                        <v-btn
+                            v-if="isEdit"
+                            @click="forceDeleteProduct"
+                            :disabled="form.processing"
+                            color="red"
+                            size="large"
+                            variant="tonal"
+                        >
+                            Eliminación Definitiva
+                        </v-btn>
 
-            <div class="mb-6 flex items-center">
-                <input v-model="form.status" type="checkbox" id="status" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                <label for="status" class="ml-2 block text-sm text-gray-900">Activo</label>
-            </div>
-            
-            <div>
-                <button type="submit" :disabled="form.processing || isUploading" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                    <span v-if="isUploading">Subiendo imagen...</span>
-                    <span v-else>Guardar Producto</span>
-                </button>
-            </div>
-        </form>
-    </div>
+                        <v-btn
+                            type="submit"
+                            :loading="form.processing || isUploading"
+                            :disabled="form.processing || isUploading"
+                            color="primary"
+                            size="large"
+                            variant="tonal"
+                            class="flex-grow-1 ml-4"
+                        >
+                            <span v-if="isUploading">Subiendo imagen...</span>
+                            <span v-else>{{ isEdit ? 'Guardar Cambios' : 'Guardar Producto' }}</span>
+                        </v-btn>
+                    </div>
+                </v-form>
+            </v-card-text>
+        </v-card>
+    </v-container>
 </template>
-

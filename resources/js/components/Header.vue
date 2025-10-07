@@ -12,6 +12,7 @@ import { Link, router } from '@inertiajs/vue3';
 
     <v-btn @click="() => router.visit('/')" text>Inicio</v-btn>
     <v-btn @click="() => router.visit('/products/create')" text>Crear Producto</v-btn>
+    <v-btn @click="() => router.visit('/products/dashboard')" text>Panel Productos</v-btn>
     <v-btn @click="() => router.visit('#')" text>Acerca de</v-btn>
   </v-app-bar>
 </template>
