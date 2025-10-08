@@ -1,6 +1,5 @@
 <script setup>
 import {ref} from 'vue'
-import Accion from './Accion.vue';
 
 const mensaje = ref('Esperando el mensaje')
 
@@ -15,10 +14,6 @@ function manejarAccion(payload){
     <h1>Componente Padre</h1>
 
     <p>{{ mensaje }}</p>
-
-    <Accion @accion="manejarAccion">
-      Pulsame
-    </Accion>  
 
   </div>
 </template>
