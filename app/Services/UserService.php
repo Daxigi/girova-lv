@@ -9,7 +9,7 @@ class UserService
 {
     protected $userRepository;
 
-    public function __contract(UserRepositoryInterface $userRepository)
+    public function __construct(UserRepositoryInterface $userRepository)
     {
         $this->userRepository = $userRepository;
     }
@@ -31,6 +31,10 @@ class UserService
 
     public function updateUser(int $id, array $data): bool
     {
+        if (empty($data['password'])) {
+            unset($data['password']);
+        }
+        
         return $this->userRepository->update($id, $data);
     }
 

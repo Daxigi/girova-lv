@@ -18,11 +18,25 @@ class StoreUserRequest extends FormRequest
 
     public function rules(): array
     {
+        $user = $this->route('user');
+        $userId = $user ? $user->id : null;
+
+        $passwordRules = 'required|string|min:8|confirmed';
+        if ($this->isMethod('put') || $this->isMethod('patch')) {
+            $passwordRules = 'nullable|string|min:8|confirmed';
+        }
+
         return 
         [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users')->ignore($userId),
+            ],
+            'password' => $passwordRules,
             'phone' => 'nullable|string|max:255',
         ];
     }

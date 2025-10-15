@@ -16,6 +16,16 @@ class AppServiceProvider extends ServiceProvider
             \App\Repositories\Contracts\ProductRepositoryInterface::class,
             \App\Repositories\Eloquent\EloquentProductRepository::class
         );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\UserRepositoryInterface::class,
+            \App\Repositories\Eloquent\EloquentUserRepository::class
+        );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\CategoryRepositoryInterface::class,
+            \App\Repositories\Eloquent\EloquentCategoryRepository::class
+        );
     }
 
     /**

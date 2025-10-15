@@ -5,21 +5,17 @@ import { ref, watch } from 'vue';
 
 import { computed } from 'vue';
 
-// Props
 const props = defineProps({
     categories: Array as () => any[],
     types: Array as () => any[],
     product: Object as () => any | undefined,
 });
 
-// Cloudinary config
 const cloudinaryCloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const cloudinaryUploadPreset = import.meta.env.VITE_UPLOAD_PRESET;
 
-// Determine if it's an edit form
 const isEdit = computed(() => !!props.product);
 
-// Form state
 const formRef = ref<any>(null);
 const form = useForm({
     name: props.product?.name || '',
@@ -33,18 +29,15 @@ const form = useForm({
     type_id: props.product?.type_id || null,
 });
 
-// Image handling state
 const imageFile = ref<File | null>(null);
-const imageUrl = ref(props.product?.imageUrl || ''); // Set initial image for preview
+const imageUrl = ref(props.product?.imageUrl || ''); 
 const isUploading = ref(false);
 
-// Validation rules
 const rules = {
     required: (value: any) => !!value || 'Este campo es requerido.',
     number: (value: any) => !isNaN(parseFloat(value)) && isFinite(value) || 'Debe ser un número.'
 };
 
-// Watch for image selection to update the preview
 watch(imageFile, (newFile) => {
     if (newFile) {
         imageUrl.value = URL.createObjectURL(newFile);
@@ -53,14 +46,13 @@ watch(imageFile, (newFile) => {
     }
 });
 
-// Form submission logic
 async function submit() {
     const { valid } = await formRef.value.validate();
     if (!valid) return;
 
     form.processing = true;
 
-    // If a new image file is selected, upload it to Cloudinary first.
+    //Si se una imagen esta seleccionada, se sube primero.
     if (imageFile.value) {
         isUploading.value = true;
         const cloudFormData = new FormData();
