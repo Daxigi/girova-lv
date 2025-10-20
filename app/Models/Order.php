@@ -2,12 +2,21 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * Order Model
+ *
+ * Representa una orden/pedido realizado por un usuario.
+ * Contiene los productos comprados y el estado de la orden.
+ */
 class Order extends Model
 {
+    use HasUuid;
+
     /**
      * @var string
      */
@@ -19,11 +28,14 @@ class Order extends Model
      * @var array
      */
     protected $fillable = [
-        'customer_id',
-        'coupon_id',
-        'status',
-        'total',
-        'subtotal',
+        'user_id',      // Usuario que realizó la orden
+        'status',       // Estado: pending, processing, shipped, delivered, cancelled
+        'total',        // Total de la orden
+        'customer_name',     // Nombre del cliente
+        'customer_email',    // Email del cliente
+        'customer_phone',    // Teléfono del cliente
+        'shipping_address',  // Dirección de envío
+        'notes',            // Notas adicionales
     ];
 
     /**
@@ -40,24 +52,46 @@ class Order extends Model
      */
     protected $keyType = 'string';
 
-    // Un pedido pertenece a un comprador
-    public function customer(): BelongsTo
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'total' => 'decimal:2',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    /**
+     * Una orden pertenece a un usuario
+     */
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(Customer::class, 'customer_id', 'id');
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
-    //Un pedido puede tener muchos items
+
+    /**
+     * Una orden tiene muchos items (productos)
+     */
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class, 'order_id', 'id');
     }
-    //Un pedido puede tener muchas formas de pago
-    public function payment(): HasMany
+
+    /**
+     * Scope para filtrar órdenes por usuario
+     */
+    public function scopeForUser($query, $userId)
     {
-        return $this->hasMany(Payment::class, 'order_id', 'id');
+        return $query->where('user_id', $userId);
     }
-    //Un pedido puede tener un cupon
-    public function coupon(): BelongsTo
+
+    /**
+     * Scope para filtrar por estado
+     */
+    public function scopeByStatus($query, $status)
     {
-        return $this->belongsTo(Coupon::class, 'coupon_id', 'id');
+        return $query->where('status', $status);
     }
 }

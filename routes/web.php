@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\ProductController as WebProductController;
 use App\Http\Controllers\Web\UserController;
+use App\Http\Controllers\Web\OrderController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Api\ProductController;
 use Inertia\Inertia;
@@ -18,6 +19,7 @@ Route::get('/', function () {
                 'description' => $product->description,
                 'price' => $product->price,
                 'image_url' => $product->imageUrl,
+                'stock' => $product->stock, // ← Agregar stock
             ];
         }),
     ]);
@@ -37,7 +39,20 @@ Route::post('/users', [UserController::class, 'store'])->name('users.store');
 
 // Rutas protegidas por autenticación
 Route::middleware(['auth'])->group(function () {
-    // Productos
+    // Usuarios (solo edición)
+    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+
+    // Checkout y Órdenes
+    Route::get('/checkout', [OrderController::class, 'showCheckout'])->name('checkout');
+    Route::post('/checkout', [OrderController::class, 'processCheckout'])->name('checkout.process');
+    Route::get('/my-orders', [OrderController::class, 'myOrders'])->name('orders.my-orders');
+    Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.show');
+});
+
+// Rutas protegidas por rol admin
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    // Productos - Solo admin
     Route::get('/products/dashboard', [WebProductController::class, 'dashboard'])->name('products.dashboard');
     Route::get('/products/create', [WebProductController::class, 'create'])->name('products.create');
     Route::post('/products', [WebProductController::class, 'store'])->name('products.store');
@@ -45,8 +60,4 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/products/{product}', [WebProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [WebProductController::class, 'softDestroy'])->name('products.destroy');
     Route::delete('/products/{product}/force', [WebProductController::class, 'forceDestroy'])->name('products.force-destroy');
-
-    // Usuarios (solo edición)
-    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
-    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
 });

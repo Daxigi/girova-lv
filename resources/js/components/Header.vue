@@ -1,9 +1,33 @@
 <script setup lang="ts">
+/**
+ * HEADER - Navegación principal
+ *
+ * Barra de navegación superior que contiene:
+ * - Logo/Nombre de la tienda
+ * - Menú de navegación
+ * - Opciones según autenticación y roles
+ * - Botón del carrito con badge
+ */
+
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { useCart } from '../composables/useCart';
 
 const page = usePage();
 const auth = computed(() => page.props.auth);
+
+// Importar el composable del carrito
+const { itemCount, toggleCart } = useCart();
+
+// Verificar si el usuario tiene un rol específico
+const hasRole = (role: string) => {
+    return auth.value.roles?.includes(role) || false;
+};
+
+// Verificar si el usuario tiene un permiso específico
+const hasPermission = (permission: string) => {
+    return auth.value.permissions?.includes(permission) || false;
+};
 
 function logout() {
     router.post(route('logout'));
@@ -20,10 +44,27 @@ function logout() {
 
     <v-btn @click="() => router.visit('/')" text>Inicio</v-btn>
 
+    <!-- Botón del Carrito con Badge -->
+    <v-btn icon @click="toggleCart" class="mr-2">
+        <v-badge
+            :content="itemCount"
+            :model-value="itemCount > 0"
+            color="error"
+            overlap
+        >
+            <v-icon>mdi-cart</v-icon>
+        </v-badge>
+    </v-btn>
+
     <!-- Botones para usuarios autenticados -->
     <template v-if="auth.user">
-        <v-btn @click="() => router.visit('/products/create')" text>Crear Producto</v-btn>
-        <v-btn @click="() => router.visit('/products/dashboard')" text>Panel Productos</v-btn>
+        <!-- Botones solo para admin -->
+        <template v-if="hasRole('admin')">
+            <v-btn @click="() => router.visit('/products/create')" text>Crear Producto</v-btn>
+            <v-btn @click="() => router.visit('/products/dashboard')" text>Panel Productos</v-btn>
+        </template>
+
+        <!-- Menú de usuario -->
         <v-menu>
             <template v-slot:activator="{ props }">
                 <v-btn v-bind="props" text>

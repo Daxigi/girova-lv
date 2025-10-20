@@ -1,21 +1,85 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+/**
+ * PRODUCT CARD - Tarjeta de producto
+ *
+ * Muestra un producto individual con:
+ * - Imagen
+ * - Nombre
+ * - Precio
+ * - Descripción
+ * - Botón para agregar al carrito
+ */
 
+import { computed } from 'vue';
+import { useCart } from '../../composables/useCart';
+
+// Definir las props que recibe este componente
 const props = defineProps<{
     product: {
+        id: number | string;
         name: string;
         description: string;
         price: number;
         image_url: string;
+        stock: number;        // ← IMPORTANTE: Agregamos stock
     }
 }>()
 
+// Importar el composable del carrito
+const { addToCart } = useCart();
+
+/**
+ * Formatear el precio en pesos argentinos
+ */
 const formattedPrice = computed(() => {
     return new Intl.NumberFormat('es-AR', {
         style: 'currency',
         currency: 'ARS',
     }).format(props.product.price);
 });
+
+/**
+ * Computed: Verificar si hay stock disponible
+ */
+const hasStock = computed(() => props.product.stock > 0);
+
+/**
+ * Computed: Mensaje de stock
+ */
+const stockMessage = computed(() => {
+    if (props.product.stock === 0) {
+        return 'Sin stock';
+    } else if (props.product.stock <= 5) {
+        return `¡Solo ${props.product.stock} disponibles!`;
+    }
+    return `Stock: ${props.product.stock}`;
+});
+
+/**
+ * Computed: Color del chip de stock
+ */
+const stockColor = computed(() => {
+    if (props.product.stock === 0) return 'error';
+    if (props.product.stock <= 5) return 'warning';
+    return 'success';
+});
+
+/**
+ * Manejar click en "Agregar al carrito"
+ *
+ * Toma el producto actual y lo agrega al carrito
+ */
+function handleAddToCart() {
+    // Agregar el producto al carrito con cantidad 1
+    addToCart({
+        id: props.product.id,
+        name: props.product.name,
+        price: props.product.price,
+        image_url: props.product.image_url,
+        stock: props.product.stock,
+        description: props.product.description,
+    }, 1);
+}
 </script>
 
 <template>
@@ -31,9 +95,16 @@ const formattedPrice = computed(() => {
             <v-card-title>{{ product.name }}</v-card-title>
         </v-img>
 
-        <v-card-subtitle
-            class="pt-4">
-            {{ formattedPrice }}
+        <v-card-subtitle class="pt-4 d-flex justify-space-between align-center">
+            <span class="text-h6">{{ formattedPrice }}</span>
+            <!-- Chip de stock -->
+            <v-chip
+                :color="stockColor"
+                size="small"
+                variant="flat"
+            >
+                {{ stockMessage }}
+            </v-chip>
         </v-card-subtitle>
 
         <v-card-text class="flex-grow-1">
@@ -41,7 +112,17 @@ const formattedPrice = computed(() => {
         </v-card-text>
 
         <v-card-actions>
-            <v-btn color="orange" variant="elevated">Agregar al carrito</v-btn>
+            <!-- Botón agregar al carrito con evento click -->
+            <v-btn
+                color="orange"
+                variant="elevated"
+                prepend-icon="mdi-cart-plus"
+                :disabled="!hasStock"
+                @click="handleAddToCart"
+                block
+            >
+                {{ hasStock ? 'Agregar al carrito' : 'Sin stock' }}
+            </v-btn>
         </v-card-actions>
     </v-card>
 </template>
