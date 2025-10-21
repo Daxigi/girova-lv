@@ -5,7 +5,6 @@ use App\Http\Controllers\Web\ProductController as WebProductController;
 use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\OrderController;
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\Api\ProductController;
 use Inertia\Inertia;
 use App\Models\Product;
 
