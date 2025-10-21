@@ -34,22 +34,10 @@ class OrderService
         DB::beginTransaction();
 
         try {
-            // PASO 1: Calcular el total de la orden
-            $total = $this->calculateTotal($data['items']);
+            // PASO 1: Validar productos y calcular total real desde la BD
+            $validatedItems = [];
+            $total = 0;
 
-            // PASO 2: Crear la orden
-            $order = Order::create([
-                'user_id' => $userId,
-                'customer_name' => $data['customer_name'],
-                'customer_email' => $data['customer_email'],
-                'customer_phone' => $data['customer_phone'] ?? null,
-                'shipping_address' => $data['shipping_address'],
-                'notes' => $data['notes'] ?? null,
-                'total' => $total,
-                'status' => 'pending', // Estado inicial
-            ]);
-
-            // PASO 3: Crear los items de la orden y actualizar stock
             foreach ($data['items'] as $item) {
                 // Verificar que el producto existe
                 $product = Product::findOrFail($item['product_id']);
@@ -61,16 +49,44 @@ class OrderService
                     );
                 }
 
+                // SEGURIDAD: Usar el precio real de la BD, NO el del frontend
+                $realPrice = $product->price;
+                $total += $realPrice * $item['quantity'];
+
+                // Guardar para usar después
+                $validatedItems[] = [
+                    'product' => $product,
+                    'quantity' => $item['quantity'],
+                    'price' => $realPrice,
+                ];
+            }
+
+            // PASO 2: Crear la orden con el total validado
+            $order = Order::create([
+                'user_id' => $userId,
+                'customer_name' => $data['customer_name'],
+                'customer_email' => $data['customer_email'],
+                'customer_phone' => $data['customer_phone'] ?? null,
+                'shipping_address' => $data['shipping_address'],
+                'notes' => $data['notes'] ?? null,
+                'total' => round($total, 2),
+                'status' => 'pending', // Estado inicial
+            ]);
+
+            // PASO 3: Crear los items de la orden con precios validados
+            foreach ($validatedItems as $validatedItem) {
+                $product = $validatedItem['product'];
+
                 // Crear el item de la orden
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $product->id,
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'], // Precio al momento de la compra
+                    'quantity' => $validatedItem['quantity'],
+                    'price' => $validatedItem['price'], // Precio validado de la BD
                 ]);
 
                 // Actualizar el stock del producto
-                $product->decrement('stock', $item['quantity']);
+                $product->decrement('stock', $validatedItem['quantity']);
             }
 
             // Si todo salió bien, confirmar la transacción
@@ -88,22 +104,6 @@ class OrderService
         }
     }
 
-    /**
-     * Calcular el total de la orden
-     *
-     * @param array $items - Array de items con price y quantity
-     * @return float
-     */
-    private function calculateTotal(array $items): float
-    {
-        $total = 0;
-
-        foreach ($items as $item) {
-            $total += $item['price'] * $item['quantity'];
-        }
-
-        return round($total, 2);
-    }
 
     /**
      * Obtener órdenes de un usuario

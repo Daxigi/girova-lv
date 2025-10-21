@@ -75,8 +75,13 @@ async function submit() {
                         label="Recordarme"
                         color="primary"
                         density="compact"
-                        class="mb-4"
                     ></v-checkbox>
+
+                    <div class="text-right mb-4">
+                        <a :href="route('password.request')" class="text-primary text-decoration-none">
+                            ¿Olvidaste tu contraseña?
+                        </a>
+                    </div>
 
                     <v-divider class="my-4"></v-divider>
 

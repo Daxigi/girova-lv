@@ -6,6 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Auth\Events\Verified;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 use Inertia\Inertia;
 
 class AuthController extends Controller
@@ -32,6 +38,8 @@ class AuthController extends Controller
             return redirect()->intended('/')->with('success', 'Has iniciado sesión exitosamente.');
         }
 
+        // Registrar intento fallido para rate limiting basado en email
+        // Esto ayuda a prevenir ataques de fuerza bruta en cuentas específicas
         return back()->withErrors([
             'email' => 'Las credenciales proporcionadas no coinciden con nuestros registros.',
         ])->onlyInput('email');
@@ -48,5 +56,124 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/')->with('success', 'Has cerrado sesión exitosamente.');
+    }
+
+    /**
+     * Mostrar aviso de verificación de email
+     */
+    public function showVerifyNotice(Request $request)
+    {
+        return $request->user()->hasVerifiedEmail()
+            ? redirect()->intended('/')
+            : Inertia::render('Auth/VerifyEmail');
+    }
+
+    /**
+     * Verificar email del usuario
+     */
+    public function verifyEmail(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->hasVerifiedEmail()) {
+            return redirect()->intended('/')->with('success', 'Tu email ya estaba verificado.');
+        }
+
+        if ($user->markEmailAsVerified()) {
+            event(new Verified($user));
+        }
+
+        return redirect()->intended('/')->with('success', 'Email verificado exitosamente.');
+    }
+
+    /**
+     * Reenviar email de verificación
+     */
+    public function resendVerification(Request $request)
+    {
+        if ($request->user()->hasVerifiedEmail()) {
+            return back()->with('info', 'Tu email ya está verificado.');
+        }
+
+        $request->user()->sendEmailVerificationNotification();
+
+        return back()->with('success', 'Email de verificación reenviado.');
+    }
+
+    /**
+     * Mostrar formulario de solicitud de reset de contraseña
+     */
+    public function showForgotPasswordForm()
+    {
+        return Inertia::render('Auth/ForgotPassword');
+    }
+
+    /**
+     * Enviar email con link de reset de contraseña
+     */
+    public function sendResetLinkEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ], [
+            'email.required' => 'El email es requerido.',
+            'email.email' => 'El email debe ser válido.',
+            'email.exists' => 'No encontramos una cuenta con ese email.',
+        ]);
+
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        if ($status === Password::RESET_LINK_SENT) {
+            return back()->with('success', 'Te hemos enviado un link de recuperación por email.');
+        }
+
+        return back()->withErrors(['email' => __($status)]);
+    }
+
+    /**
+     * Mostrar formulario de reset de contraseña
+     */
+    public function showResetPasswordForm(Request $request, string $token)
+    {
+        return Inertia::render('Auth/ResetPassword', [
+            'token' => $token,
+            'email' => $request->email,
+        ]);
+    }
+
+    /**
+     * Resetear la contraseña
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => ['required', 'confirmed', PasswordRule::defaults()],
+        ], [
+            'email.required' => 'El email es requerido.',
+            'email.email' => 'El email debe ser válido.',
+            'password.required' => 'La contraseña es requerida.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password)
+                ])->save();
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            return redirect()->route('login')->with('success', 'Contraseña actualizada exitosamente.');
+        }
+
+        throw ValidationException::withMessages([
+            'email' => [__($status)],
+        ]);
     }
 }

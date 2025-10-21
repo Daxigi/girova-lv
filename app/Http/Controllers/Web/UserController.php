@@ -8,6 +8,8 @@ use App\Services\UserService;
 use App\Models\User;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Auth\Events\Registered;
 
 class UserController extends Controller
 {
@@ -25,8 +27,15 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request)
     {
-        $this->userService->createUser($request->validated());
-        return redirect()->route('users.create')->with('success', 'User created successfully.');
+        $user = $this->userService->createUser($request->validated());
+
+        // Disparar evento de registro para enviar email de verificación
+        event(new Registered($user));
+
+        // Loguear automáticamente al usuario
+        Auth::login($user);
+
+        return redirect()->route('verification.notice')->with('success', 'Cuenta creada exitosamente. Por favor verifica tu email.');
     }
 
     public function edit(User $user)
