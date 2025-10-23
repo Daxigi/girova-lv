@@ -75,11 +75,4 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
         ];
     }
-
-    // public function roles(): BelongsToMany
-    // {
-    //     // Se declara la relacion User y Role, seria la intermedia user_roles
-    //     // se especifican las columnas por que los IDS son UUIDS
-    //     return $this->belongsToMany(roles::class, 'role_user', 'user_id', 'role_id');
-    // }
 }
