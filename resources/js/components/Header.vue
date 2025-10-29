@@ -35,9 +35,11 @@ function logout() {
 </script>
 
 <template>
-  <v-app-bar color="primary">
-    <v-toolbar-title>
-        <Link href="/" class="text-white" style="text-decoration: none;">MiTienda</Link>
+  <v-app-bar color="primary" elevation="2">
+    <v-toolbar-title class="pl-4">
+        <Link href="/" class="text-white" style="text-decoration: none; font-family: 'Playfair Display', serif; font-size: 1.75rem; font-weight: 800; letter-spacing: 0.05em;">
+            GIROVA
+        </Link>
     </v-toolbar-title>
 
     <v-spacer></v-spacer>
@@ -56,11 +58,16 @@ function logout() {
         </v-badge>
     </v-btn>
 
+    <v-btn @click="() => router.visit('/products/show')" text>Productos</v-btn>
+
     <!-- Botones para usuarios autenticados -->
     <template v-if="auth.user">
-        <!-- Botones solo para admin -->
-        <template v-if="hasRole('admin')">
+        <!-- Botones para usuarios con permisos de productos -->
+        <template v-if="hasRole('admin') || hasPermission('create products')">
             <v-btn @click="() => router.visit('/products/create')" text>Crear Producto</v-btn>
+        </template>
+
+        <template v-if="hasRole('admin') || hasPermission('edit products')">
             <v-btn @click="() => router.visit('/products/dashboard')" text>Panel Productos</v-btn>
         </template>
 

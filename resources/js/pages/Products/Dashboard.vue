@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { defineProps } from 'vue';
+import { defineProps, ref } from 'vue';
 import { Link, router} from '@inertiajs/vue3'
 
 // Define the props
 const props = defineProps({
     products: Array as () => any[],
 });
+
 
 // Placeholder functions for actions
 const editProduct = (id: string) => {
@@ -25,7 +26,10 @@ const deleteProduct = (id: string) => {
 
 <template>
     <v-container>
-        <h1 class="mb-6 text-h4">Dashboard de Productos</h1>
+        <h1 class="mb-6 text-h4" style="font-family: 'Playfair Display', serif; font-weight: 700; letter-spacing: 0.05em; color: #000000;">
+            Dashboard de Productos
+        </h1>
+
         <v-row>
             <v-col v-if="!products || products.length === 0" cols="12">
                 <p class="text-center grey--text">No hay productos para mostrar.</p>
@@ -55,8 +59,8 @@ const deleteProduct = (id: string) => {
                     </div>
 
                     <v-card-actions class="align-self-center pa-4">
-                        <v-btn icon="mdi-pencil" color="blue" variant="text" @click="editProduct(product.id)" title="Editar"></v-btn>
-                        <v-btn icon="mdi-delete" color="red" variant="text" class="ml-2" @click="deleteProduct(product.id)" title="Dar de baja"></v-btn>
+                        <v-btn icon="mdi-pencil" color="black" variant="text" @click="editProduct(product.id)" title="Editar"></v-btn>
+                        <v-btn icon="mdi-delete" color="#424242" variant="text" class="ml-2" @click="deleteProduct(product.id)" title="Dar de baja"></v-btn>
                     </v-card-actions>
                 </v-card>
             </v-col>

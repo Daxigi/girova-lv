@@ -25,11 +25,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // Registrar alias de middleware de Spatie
-        $middleware->alias([
-            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
-            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
-            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
-        ]);
+        // COMENTADO: Implementarás tu propia autorización con Gates y Policies
+        // $middleware->alias([
+        //     'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+        //     'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+        //     'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+        // ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

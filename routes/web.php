@@ -24,8 +24,8 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-// Route::get('/', function(){
-//     return Inertia::render('tecnologies');})->name('test');
+// Ruta pública para ver todos los productos
+Route::get('/products/show', [WebProductController::class, 'showProducts'])->name('products.show');
 
 // Rutas de autenticación
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -86,8 +86,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 // Rutas protegidas por rol admin
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    // Productos - Solo admin
+// COMENTADO: Implementarás tu propia autorización con Gates y Policies
+// Route::middleware(['auth', 'role:admin'])->group(function () {
+//     // Productos - Solo admin
+//     Route::get('/products/dashboard', [WebProductController::class, 'dashboard'])->name('products.dashboard');
+//     Route::get('/products/create', [WebProductController::class, 'create'])->name('products.create');
+//     Route::post('/products', [WebProductController::class, 'store'])->name('products.store');
+//     Route::get('/products/{product}/edit', [WebProductController::class, 'edit'])->name('products.edit');
+//     Route::put('/products/{product}', [WebProductController::class, 'update'])->name('products.update');
+//     Route::delete('/products/{product}', [WebProductController::class, 'softDestroy'])->name('products.destroy');
+//     Route::delete('/products/{product}/force', [WebProductController::class, 'forceDestroy'])->name('products.force-destroy');
+// });
+
+// TEMPORAL: Rutas sin protección para que puedas implementar Gates/Policies
+Route::middleware(['auth'])->group(function () {
+    // Productos - Implementarás la autorización en el controlador
     Route::get('/products/dashboard', [WebProductController::class, 'dashboard'])->name('products.dashboard');
     Route::get('/products/create', [WebProductController::class, 'create'])->name('products.create');
     Route::post('/products', [WebProductController::class, 'store'])->name('products.store');

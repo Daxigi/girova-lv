@@ -56,12 +56,12 @@ const stockMessage = computed(() => {
 });
 
 /**
- * Computed: Color del chip de stock
+ * Computed: Color del chip de stock (tema blanco y negro)
  */
 const stockColor = computed(() => {
-    if (props.product.stock === 0) return 'error';
-    if (props.product.stock <= 5) return 'warning';
-    return 'success';
+    if (props.product.stock === 0) return '#212121';      // Gris muy oscuro
+    if (props.product.stock <= 5) return '#757575';       // Gris medio
+    return '#424242';                                      // Gris oscuro
 });
 
 /**
@@ -114,7 +114,7 @@ function handleAddToCart() {
         <v-card-actions>
             <!-- Botón agregar al carrito con evento click -->
             <v-btn
-                color="orange"
+                color="black"
                 variant="elevated"
                 prepend-icon="mdi-cart-plus"
                 :disabled="!hasStock"

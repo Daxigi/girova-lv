@@ -47,24 +47,25 @@ class DatabaseSeeder extends Seeder
             'status' => true,
         ]);
 
-        // Crear usuario de prueba
-        $user = User::create([
+        // Crear productos
+        $this->call(ProductSeeder::class);
+
+        // Crear 1 usuario admin
+        $admin = User::factory()->create([
             'name' => 'Admin User',
             'email' => 'admin@example.com',
             'password' => Hash::make('password'),
         ]);
+        $admin->assignRole('admin');
 
-        // Asignar rol de admin
-        $user->assignRole('admin');
+        // Crear 5 usuarios employee
+        User::factory()->count(5)->create()->each(function ($user) {
+            $user->assignRole('employee');
+        });
 
-        // Crear usuario customer de prueba
-        $customer = User::create([
-            'name' => 'Customer User',
-            'email' => 'customer@example.com',
-            'password' => Hash::make('password'),
-        ]);
-
-        // Asignar rol de customer
-        $customer->assignRole('customer');
+        // Crear 10 usuarios customer
+        User::factory()->count(10)->create()->each(function ($user) {
+            $user->assignRole('customer');
+        });
     }
 }

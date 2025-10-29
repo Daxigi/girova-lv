@@ -20,6 +20,7 @@ class RoleSeeder extends Seeder
         // Crear roles
         $adminRole = Role::create(['name' => 'admin']);
         $customerRole = Role::create(['name' => 'customer']);
+        $employeeRole = Role::create(['name'=> 'employee']);
 
         // Asignar TODOS los permisos al admin
         $adminRole->givePermissionTo(Permission::all());
@@ -28,6 +29,15 @@ class RoleSeeder extends Seeder
         $customerRole->givePermissionTo([
             'view products',
             'view orders',
+        ]);
+
+        $employeeRole->givePermissionTo([
+            'view products',
+            'create products',
+            'edit products',
+            'manage categories',
+            'manage types',
+            'view orders'
         ]);
     }
 }
