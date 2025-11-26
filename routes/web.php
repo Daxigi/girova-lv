@@ -78,11 +78,16 @@ Route::middleware(['auth'])->group(function () {
 
 // Rutas que requieren email verificado
 Route::middleware(['auth', 'verified'])->group(function () {
+    // Perfil de usuario
+    Route::get('/profile/edit', [UserController::class, 'editProfile'])->name('profile.edit');
+    Route::put('/profile', [UserController::class, 'updateProfile'])->name('profile.update');
+
     // Checkout y Órdenes
     Route::get('/checkout', [OrderController::class, 'showCheckout'])->name('checkout');
     Route::post('/checkout', [OrderController::class, 'processCheckout'])->name('checkout.process');
     Route::get('/my-orders', [OrderController::class, 'myOrders'])->name('orders.my-orders');
     Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.show');
+    Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus'])->name('orders.update-status');
 });
 
 // Rutas protegidas por rol admin

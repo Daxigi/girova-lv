@@ -12,6 +12,7 @@ import { ref, computed } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { useCart } from '../../composables/useCart';
 import { useToast } from '../../composables/useToast';
+import { formatDate, formatPrice } from '@/utils/formatters';
 
 // Obtener datos del usuario autenticado
 const page = usePage();
@@ -52,16 +53,6 @@ const rules = {
     required: (value: any) => !!value || 'Este campo es requerido.',
     email: (value: any) => /.+@.+\..+/.test(value) || 'Debe ser un correo electrónico válido.',
 };
-
-/**
- * Computed: Formatear precio
- */
-function formatPrice(price: number): string {
-    return new Intl.NumberFormat('es-AR', {
-        style: 'currency',
-        currency: 'ARS',
-    }).format(price);
-}
 
 /**
  * Computed: Verificar si el carrito está vacío
@@ -106,15 +97,15 @@ async function handleSubmit() {
 </script>
 
 <template>
-    <v-container class="py-8">
-        <h1 class="text-h4 mb-6">Finalizar Compra</h1>
+    <v-container class="py-4 py-md-8">
+        <h1 class="text-h5 text-md-h4 mb-4 mb-md-6">Finalizar Compra</h1>
 
         <!-- Mensaje si el carrito está vacío -->
         <v-alert
             v-if="isEmpty"
             type="warning"
             variant="tonal"
-            class="mb-6"
+            class="mb-4 mb-md-6"
         >
             Tu carrito está vacío. Agrega productos antes de continuar.
         </v-alert>
@@ -122,12 +113,12 @@ async function handleSubmit() {
         <v-row v-else>
             <!-- COLUMNA IZQUIERDA: Formulario -->
             <v-col cols="12" md="7">
-                <v-card>
-                    <v-card-title class="text-h5 pa-4 bg-primary">
+                <v-card class="mb-4 mb-md-0">
+                    <v-card-title class="text-subtitle-1 text-md-h5 pa-3 pa-md-4 bg-primary">
                         Información de Envío
                     </v-card-title>
 
-                    <v-card-text class="pa-6">
+                    <v-card-text class="pa-4 pa-md-6">
                         <v-form ref="formRef" @submit.prevent="handleSubmit">
                             <!-- Nombre completo -->
                             <v-text-field
@@ -138,7 +129,7 @@ async function handleSubmit() {
                                 prepend-inner-icon="mdi-account"
                                 :rules="[rules.required]"
                                 :error-messages="form.errors.customer_name"
-                                class="mb-4"
+                                class="mb-3 mb-md-4"
                             />
 
                             <!-- Email -->
@@ -151,7 +142,7 @@ async function handleSubmit() {
                                 prepend-inner-icon="mdi-email"
                                 :rules="[rules.required, rules.email]"
                                 :error-messages="form.errors.customer_email"
-                                class="mb-4"
+                                class="mb-3 mb-md-4"
                             />
 
                             <!-- Teléfono -->
@@ -163,7 +154,7 @@ async function handleSubmit() {
                                 density="comfortable"
                                 prepend-inner-icon="mdi-phone"
                                 :error-messages="form.errors.customer_phone"
-                                class="mb-4"
+                                class="mb-3 mb-md-4"
                                 hint="Ej: +54 9 11 1234-5678"
                             />
 
@@ -176,7 +167,7 @@ async function handleSubmit() {
                                 :rules="[rules.required]"
                                 :error-messages="form.errors.shipping_address"
                                 rows="3"
-                                class="mb-4"
+                                class="mb-3 mb-md-4"
                                 hint="Calle, número, piso, departamento, código postal, ciudad"
                             />
 
@@ -188,29 +179,32 @@ async function handleSubmit() {
                                 prepend-inner-icon="mdi-note-text"
                                 :error-messages="form.errors.notes"
                                 rows="2"
-                                class="mb-4"
+                                class="mb-3 mb-md-4"
                                 hint="Ej: Tocar timbre del 5to piso"
                             />
 
                             <!-- Botones de acción -->
-                            <div class="d-flex justify-space-between">
+                            <div class="d-flex flex-column flex-sm-row justify-space-between ga-2 ga-sm-3">
                                 <v-btn
                                     :to="route('home')"
                                     variant="outlined"
                                     color="grey"
-                                    size="large"
+                                    :size="$vuetify.display.xs ? 'default' : 'large'"
                                     prepend-icon="mdi-arrow-left"
+                                    class="order-2 order-sm-1"
                                 >
-                                    Seguir Comprando
+                                    <span class="d-none d-sm-inline">Seguir Comprando</span>
+                                    <span class="d-sm-none">Volver</span>
                                 </v-btn>
 
                                 <v-btn
                                     type="submit"
                                     color="primary"
-                                    size="large"
+                                    :size="$vuetify.display.xs ? 'default' : 'large'"
                                     :loading="form.processing"
                                     :disabled="form.processing || isEmpty"
                                     prepend-icon="mdi-check-circle"
+                                    class="order-1 order-sm-2"
                                 >
                                     Confirmar Orden
                                 </v-btn>
@@ -223,11 +217,11 @@ async function handleSubmit() {
             <!-- COLUMNA DERECHA: Resumen del carrito -->
             <v-col cols="12" md="5">
                 <v-card>
-                    <v-card-title class="text-h5 pa-4 bg-secondary">
+                    <v-card-title class="text-subtitle-1 text-md-h5 pa-3 pa-md-4 bg-secondary">
                         Resumen del Pedido
                     </v-card-title>
 
-                    <v-card-text class="pa-4">
+                    <v-card-text class="pa-3 pa-md-4">
                         <!-- Lista de productos -->
                         <v-list lines="two">
                             <v-list-item
@@ -236,33 +230,33 @@ async function handleSubmit() {
                                 class="px-0"
                             >
                                 <template v-slot:prepend>
-                                    <v-avatar size="60" rounded>
+                                    <v-avatar :size="$vuetify.display.xs ? 50 : 60" rounded class="mr-2 mr-md-3">
                                         <v-img :src="item.image_url" :alt="item.name" cover />
                                     </v-avatar>
                                 </template>
 
-                                <v-list-item-title class="text-wrap mb-1">
+                                <v-list-item-title class="text-wrap mb-1 text-body-2 text-md-body-1">
                                     {{ item.name }}
                                 </v-list-item-title>
 
-                                <v-list-item-subtitle>
+                                <v-list-item-subtitle class="text-caption text-md-body-2">
                                     Cantidad: {{ item.quantity }} x {{ formatPrice(item.price) }}
                                 </v-list-item-subtitle>
 
                                 <template v-slot:append>
                                     <div class="text-right">
-                                        <strong>{{ formatPrice(item.price * item.quantity) }}</strong>
+                                        <strong class="text-body-2 text-md-body-1">{{ formatPrice(item.price * item.quantity) }}</strong>
                                     </div>
                                 </template>
                             </v-list-item>
                         </v-list>
 
-                        <v-divider class="my-4"></v-divider>
+                        <v-divider class="my-3 my-md-4"></v-divider>
 
                         <!-- Total -->
-                        <div class="d-flex justify-space-between align-center mb-4">
-                            <span class="text-h6">Total:</span>
-                            <span class="text-h5 font-weight-bold text-primary">
+                        <div class="d-flex justify-space-between align-center mb-3 mb-md-4">
+                            <span class="text-subtitle-1 text-md-h6">Total:</span>
+                            <span class="text-h6 text-md-h5 font-weight-bold text-primary">
                                 {{ formatPrice(cart.total) }}
                             </span>
                         </div>
@@ -274,7 +268,7 @@ async function handleSubmit() {
                             density="compact"
                         >
                             <template v-slot:prepend>
-                                <v-icon>mdi-information</v-icon>
+                                <v-icon :size="$vuetify.display.xs ? 'small' : 'default'">mdi-information</v-icon>
                             </template>
                             <div class="text-caption">
                                 El pago se realizará contra entrega.

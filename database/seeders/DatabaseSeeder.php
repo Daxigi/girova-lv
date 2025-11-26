@@ -58,6 +58,30 @@ class DatabaseSeeder extends Seeder
         ]);
         $admin->assignRole('admin');
 
+        // Crear 1 usuario employee
+        $employee = User::factory()->create([
+            'name' => 'Employee User',
+            'email' => 'employee@example.com',
+            'password' => Hash::make('password'),
+        ]);
+        $employee->assignRole('employee');
+
+        // Crear primer usuario customer
+        $customer = User::factory()->create([
+            'name' => 'customer one User',
+            'email' => 'customer1@example.com',
+            'password' => Hash::make('password'),
+        ]);
+        $customer->assignRole('customer');
+
+        // Crear segundo usuario customer
+        $customer = User::factory()->create([
+            'name' => 'customer two User',
+            'email' => 'customer2@example.com',
+            'password' => Hash::make('password'),
+        ]);
+        $customer->assignRole('customer');
+
         // Crear 5 usuarios employee
         User::factory()->count(5)->create()->each(function ($user) {
             $user->assignRole('employee');

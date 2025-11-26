@@ -33,6 +33,19 @@ class Product extends Model
         'type_id',
     ];
 
+    /**
+     * Atributos que deben agregarse a la serialización
+     */
+    protected $appends = ['image_url'];
+
+    /**
+     * Accessor para image_url (compatibilidad con snake_case)
+     */
+    public function getImageUrlAttribute()
+    {
+        return $this->attributes['imageUrl'] ?? null;
+    }
+
     //Un producto puede pertenecer a una categoria
     public function category(): BelongsTo
     {

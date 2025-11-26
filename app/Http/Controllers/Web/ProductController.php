@@ -91,7 +91,7 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        $this->authorize('update', Product::class);
+        $this->authorize('update', $product);
 
         return Inertia::render('Products/Create', [
             'product' => $product,
@@ -105,9 +105,17 @@ class ProductController extends Controller
      */
     public function update(StoreProductRequest $request, Product $product)
     {
-        $this->authorize('update', Product::class);
+        $this->authorize('update', $product);
 
-        $product->update($request->validated());
+        // Obtener datos validados
+        $data = $request->validated();
+
+        // Si imageUrl es null o está vacía, no la actualices (mantén la existente)
+        if (empty($data['imageUrl'])) {
+            unset($data['imageUrl']);
+        }
+
+        $product->update($data);
 
         return redirect()->route('products.dashboard')->with('success', 'Producto actualizado exitosamente.');
     }
@@ -117,7 +125,7 @@ class ProductController extends Controller
      */
     public function softDestroy(Product $product)
     {
-        $this->authorize('delete', Product::class);
+        $this->authorize('delete', $product);
 
         $product->delete();
 
@@ -129,7 +137,7 @@ class ProductController extends Controller
      */
     public function forceDestroy(Product $product)
     {
-        $this->authorize('delete', Product::class);
+        $this->authorize('delete', $product);
 
         $product->forceDelete();
 

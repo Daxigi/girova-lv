@@ -22,3 +22,20 @@ export interface User {
     created_at: string;
     updated_at: string;
 }
+
+export interface Product {
+  id: number | string;
+  name: string;
+  description: string;
+  price: number;
+  image_url: string;
+  stock: number;
+  category?: {
+    id: number;
+    name: string;
+  } | null;
+  type?: {
+    id: number;
+    name: string;
+  } | null;
+}

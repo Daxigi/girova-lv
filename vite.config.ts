@@ -22,4 +22,10 @@ export default defineConfig({
         }),
         vuetify({ autoImport: true }),
     ],
+    server: {
+        host: '0.0.0.0', // Permite conexiones externas
+        // hmr: {
+        //     host: '172.28.3.44', // Tu IP local para que funcione desde el celular
+        // },
+    },
 });

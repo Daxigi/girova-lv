@@ -7,6 +7,7 @@
 
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import {formatDate, formatPrice} from '../../utils/formatters'
 
 /**
  * Props recibidas del backend
@@ -18,6 +19,11 @@ const props = defineProps<{
         total: number;
         customer_name: string;
         created_at: string;
+        user?: {
+            id: string;
+            name: string;
+            email: string;
+        };
         items: Array<{
             id: string;
             quantity: number;
@@ -29,31 +35,8 @@ const props = defineProps<{
             };
         }>;
     }>;
+    isAdminView: boolean;
 }>();
-
-/**
- * Formatear precio
- */
-function formatPrice(price: number): string {
-    return new Intl.NumberFormat('es-AR', {
-        style: 'currency',
-        currency: 'ARS',
-    }).format(price);
-}
-
-/**
- * Formatear fecha
- */
-function formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('es-AR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(date);
-}
 
 /**
  * Obtener color según el estado
@@ -104,16 +87,19 @@ const hasOrders = computed(() => props.orders && props.orders.length > 0);
 </script>
 
 <template>
-    <v-container class="py-8">
-        <div class="d-flex justify-space-between align-center mb-6">
-            <h1 class="text-h4">Mis Órdenes</h1>
+    <v-container class="py-4 py-md-8">
+        <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center mb-6 ga-3">
+            <h1 class="text-h5 text-md-h4">{{ isAdminView ? 'Todas las Órdenes' : 'Mis Órdenes' }}</h1>
             <v-btn
                 :to="route('home')"
                 color="primary"
                 variant="outlined"
                 prepend-icon="mdi-arrow-left"
+                size="small"
+                class="align-self-stretch align-self-sm-auto"
             >
-                Volver a la Tienda
+                <span class="d-none d-sm-inline">Volver a la Tienda</span>
+                <span class="d-sm-none">Volver</span>
             </v-btn>
         </div>
 
@@ -144,13 +130,18 @@ const hasOrders = computed(() => props.orders && props.orders.length > 0);
                 cols="12"
             >
                 <v-card class="order-card" elevation="2">
-                    <v-card-title class="d-flex justify-space-between align-center bg-grey-lighten-4">
-                        <div>
-                            <div class="text-h6">
+                    <v-card-title class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center bg-grey-lighten-4 ga-3">
+                        <div class="flex-grow-1">
+                            <div class="text-subtitle-1 text-md-h6 font-weight-bold">
                                 Orden #{{ order.id.substring(0, 8) }}
                             </div>
                             <div class="text-caption text-grey">
                                 {{ formatDate(order.created_at) }}
+                            </div>
+                            <!-- Mostrar usuario si es vista admin -->
+                            <div v-if="isAdminView && order.user" class="text-caption text-primary mt-1">
+                                <v-icon size="small" class="mr-1">mdi-account</v-icon>
+                                {{ order.user.name }} ({{ order.user.email }})
                             </div>
                         </div>
 
@@ -159,16 +150,18 @@ const hasOrders = computed(() => props.orders && props.orders.length > 0);
                             :color="getStatusColor(order.status)"
                             :prepend-icon="getStatusIcon(order.status)"
                             variant="flat"
+                            size="small"
+                            class="align-self-start align-self-sm-center"
                         >
                             {{ getStatusText(order.status) }}
                         </v-chip>
                     </v-card-title>
 
-                    <v-card-text class="pa-4">
+                    <v-card-text class="pa-3 pa-md-4">
                         <v-row>
                             <!-- Columna izquierda: Productos -->
                             <v-col cols="12" md="8">
-                                <div class="text-subtitle-2 mb-3">Productos:</div>
+                                <div class="text-subtitle-2 text-md-subtitle-1 mb-3">Productos:</div>
                                 <v-list density="compact">
                                     <v-list-item
                                         v-for="item in order.items"
@@ -176,7 +169,7 @@ const hasOrders = computed(() => props.orders && props.orders.length > 0);
                                         class="px-0"
                                     >
                                         <template v-slot:prepend>
-                                            <v-avatar size="50" rounded class="mr-3">
+                                            <v-avatar :size="$vuetify.display.xs ? 40 : 50" rounded class="mr-2 mr-md-3">
                                                 <v-img
                                                     :src="item.product.image_url"
                                                     :alt="item.product.name"
@@ -185,16 +178,16 @@ const hasOrders = computed(() => props.orders && props.orders.length > 0);
                                             </v-avatar>
                                         </template>
 
-                                        <v-list-item-title>
+                                        <v-list-item-title class="text-body-2 text-md-body-1">
                                             {{ item.product.name }}
                                         </v-list-item-title>
 
-                                        <v-list-item-subtitle>
+                                        <v-list-item-subtitle class="text-caption text-md-body-2">
                                             {{ item.quantity }} x {{ formatPrice(item.price) }}
                                         </v-list-item-subtitle>
 
                                         <template v-slot:append>
-                                            <strong>{{ formatPrice(item.price * item.quantity) }}</strong>
+                                            <strong class="text-body-2 text-md-body-1">{{ formatPrice(item.price * item.quantity) }}</strong>
                                         </template>
                                     </v-list-item>
                                 </v-list>
@@ -202,9 +195,9 @@ const hasOrders = computed(() => props.orders && props.orders.length > 0);
 
                             <!-- Columna derecha: Total y acciones -->
                             <v-col cols="12" md="4">
-                                <v-card variant="outlined" class="pa-4">
-                                    <div class="text-subtitle-2 mb-2">Total:</div>
-                                    <div class="text-h5 text-primary mb-4">
+                                <v-card variant="outlined" class="pa-3 pa-md-4">
+                                    <div class="text-subtitle-2 text-md-subtitle-1 mb-2">Total:</div>
+                                    <div class="text-h6 text-md-h5 text-primary mb-3 mb-md-4">
                                         {{ formatPrice(order.total) }}
                                     </div>
 
@@ -214,6 +207,7 @@ const hasOrders = computed(() => props.orders && props.orders.length > 0);
                                             color="primary"
                                             variant="outlined"
                                             prepend-icon="mdi-eye"
+                                            :size="$vuetify.display.xs ? 'small' : 'default'"
                                         >
                                             Ver Detalles
                                         </v-btn>

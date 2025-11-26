@@ -9,8 +9,9 @@
  * - Total
  */
 
-import { computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { Link, router } from '@inertiajs/vue3';
+import { formatDate, formatPrice} from '../../utils/formatters';
 
 /**
  * Props recibidas del backend
@@ -38,31 +39,8 @@ const props = defineProps<{
             };
         }>;
     };
+    canUpdateStatus: boolean;
 }>();
-
-/**
- * Formatear precio
- */
-function formatPrice(price: number): string {
-    return new Intl.NumberFormat('es-AR', {
-        style: 'currency',
-        currency: 'ARS',
-    }).format(price);
-}
-
-/**
- * Formatear fecha
- */
-function formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('es-AR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(date);
-}
 
 /**
  * Obtener color según el estado
@@ -112,23 +90,70 @@ function getStatusIcon(status: string): string {
 function getItemSubtotal(item: any): number {
     return item.price * item.quantity;
 }
+
+/**
+ * Estado seleccionado (reactivo)
+ */
+const selectedStatus = ref(props.order.status);
+const isUpdatingStatus = ref(false);
+
+/**
+ * Estados disponibles
+ */
+const statusOptions = [
+    { value: 'pending', text: 'Pendiente' },
+    { value: 'processing', text: 'En Proceso' },
+    { value: 'shipped', text: 'Enviado' },
+    { value: 'delivered', text: 'Entregado' },
+    { value: 'cancelled', text: 'Cancelado' },
+];
+
+/**
+ * Actualizar el estado de la orden
+ */
+function updateOrderStatus() {
+    if (selectedStatus.value === props.order.status) {
+        return; // No cambió nada
+    }
+
+    isUpdatingStatus.value = true;
+
+    router.put(
+        route('orders.update-status', props.order.id),
+        { status: selectedStatus.value },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                isUpdatingStatus.value = false;
+            },
+            onError: () => {
+                isUpdatingStatus.value = false;
+                selectedStatus.value = props.order.status; // Revertir
+            },
+        }
+    );
+}
 </script>
 
 <template>
-    <v-container class="py-8">
+    <v-container class="py-4 py-md-8">
         <!-- Header con título y botón volver -->
-        <div class="d-flex justify-space-between align-center mb-6">
-            <div>
-                <h1 class="text-h4">Orden #{{ order.id.substring(0, 8) }}</h1>
-                <p class="text-grey">{{ formatDate(order.created_at) }}</p>
+        <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center mb-4 mb-md-6 ga-3">
+            <div class="flex-grow-1">
+                <h1 class="text-h5 text-md-h4">Orden #{{ order.id.substring(0, 8) }}</h1>
+                <p class="text-caption text-md-body-1 text-grey">{{ formatDate(order.created_at) }}</p>
             </div>
-            <Link :href="route('orders.my-orders')">
+            <Link :href="route('orders.my-orders')" class="align-self-stretch align-self-sm-auto">
                 <v-btn
                     color="primary"
                     variant="outlined"
                     prepend-icon="mdi-arrow-left"
+                    :size="$vuetify.display.xs ? 'small' : 'default'"
+                    block
+                    class="d-sm-inline-block"
                 >
-                    Volver a Mis Órdenes
+                    <span class="d-none d-sm-inline">Volver a Mis Órdenes</span>
+                    <span class="d-sm-none">Volver</span>
                 </v-btn>
             </Link>
         </div>
@@ -137,19 +162,21 @@ function getItemSubtotal(item: any): number {
             <!-- COLUMNA IZQUIERDA: Productos y detalles -->
             <v-col cols="12" md="8">
                 <!-- Card de productos -->
-                <v-card class="mb-6">
-                    <v-card-title class="bg-grey-lighten-4 d-flex justify-space-between align-center">
-                        <span>Productos</span>
+                <v-card class="mb-4 mb-md-6">
+                    <v-card-title class="bg-grey-lighten-4 d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center ga-2">
+                        <span class="text-subtitle-1 text-md-h6">Productos</span>
                         <v-chip
                             :color="getStatusColor(order.status)"
                             :prepend-icon="getStatusIcon(order.status)"
                             variant="flat"
+                            :size="$vuetify.display.xs ? 'small' : 'default'"
+                            class="align-self-start align-self-sm-center"
                         >
                             {{ getStatusText(order.status) }}
                         </v-chip>
                     </v-card-title>
 
-                    <v-card-text class="pa-4">
+                    <v-card-text class="pa-3 pa-md-4">
                         <v-list lines="two">
                             <v-list-item
                                 v-for="item in order.items"
@@ -157,7 +184,7 @@ function getItemSubtotal(item: any): number {
                                 class="px-0 mb-2"
                             >
                                 <template v-slot:prepend>
-                                    <v-avatar size="80" rounded class="mr-4">
+                                    <v-avatar :size="$vuetify.display.xs ? 60 : 80" rounded class="mr-2 mr-md-4">
                                         <v-img
                                             :src="item.product.image_url"
                                             :alt="item.product.name"
@@ -166,21 +193,21 @@ function getItemSubtotal(item: any): number {
                                     </v-avatar>
                                 </template>
 
-                                <v-list-item-title class="text-h6 mb-2">
+                                <v-list-item-title class="text-subtitle-1 text-md-h6 mb-1 mb-md-2">
                                     {{ item.product.name }}
                                 </v-list-item-title>
 
-                                <v-list-item-subtitle class="text-body-2">
+                                <v-list-item-subtitle class="text-caption text-md-body-2">
                                     {{ item.product.description }}
                                 </v-list-item-subtitle>
 
-                                <v-list-item-subtitle class="mt-2">
+                                <v-list-item-subtitle class="mt-1 mt-md-2 text-caption text-md-body-2">
                                     <strong>Cantidad:</strong> {{ item.quantity }} x {{ formatPrice(item.price) }}
                                 </v-list-item-subtitle>
 
                                 <template v-slot:append>
                                     <div class="text-right">
-                                        <div class="text-h6 text-primary">
+                                        <div class="text-subtitle-1 text-md-h6 text-primary">
                                             {{ formatPrice(getItemSubtotal(item)) }}
                                         </div>
                                     </div>
@@ -188,12 +215,12 @@ function getItemSubtotal(item: any): number {
                             </v-list-item>
                         </v-list>
 
-                        <v-divider class="my-4"></v-divider>
+                        <v-divider class="my-3 my-md-4"></v-divider>
 
                         <!-- Total -->
                         <div class="d-flex justify-space-between align-center">
-                            <span class="text-h6">Total:</span>
-                            <span class="text-h5 font-weight-bold text-primary">
+                            <span class="text-subtitle-1 text-md-h6">Total:</span>
+                            <span class="text-h6 text-md-h5 font-weight-bold text-primary">
                                 {{ formatPrice(order.total) }}
                             </span>
                         </div>
@@ -202,12 +229,12 @@ function getItemSubtotal(item: any): number {
 
                 <!-- Card de notas (si existen) -->
                 <v-card v-if="order.notes">
-                    <v-card-title class="bg-grey-lighten-4">
-                        <v-icon class="mr-2">mdi-note-text</v-icon>
+                    <v-card-title class="bg-grey-lighten-4 text-subtitle-1 text-md-h6">
+                        <v-icon class="mr-2" :size="$vuetify.display.xs ? 'small' : 'default'">mdi-note-text</v-icon>
                         Notas Adicionales
                     </v-card-title>
-                    <v-card-text class="pa-4">
-                        <p class="text-body-1">{{ order.notes }}</p>
+                    <v-card-text class="pa-3 pa-md-4">
+                        <p class="text-body-2 text-md-body-1">{{ order.notes }}</p>
                     </v-card-text>
                 </v-card>
             </v-col>
@@ -215,39 +242,71 @@ function getItemSubtotal(item: any): number {
             <!-- COLUMNA DERECHA: Información del cliente y envío -->
             <v-col cols="12" md="4">
                 <!-- Card de información del cliente -->
-                <v-card class="mb-6">
-                    <v-card-title class="bg-grey-lighten-4">
-                        <v-icon class="mr-2">mdi-account</v-icon>
+                <v-card class="mb-4 mb-md-6">
+                    <v-card-title class="bg-grey-lighten-4 text-subtitle-1 text-md-h6">
+                        <v-icon class="mr-2" :size="$vuetify.display.xs ? 'small' : 'default'">mdi-account</v-icon>
                         Información del Cliente
                     </v-card-title>
-                    <v-card-text class="pa-4">
-                        <div class="mb-3">
+                    <v-card-text class="pa-3 pa-md-4">
+                        <div class="mb-2 mb-md-3">
                             <div class="text-caption text-grey">Nombre</div>
-                            <div class="text-body-1">{{ order.customer_name }}</div>
+                            <div class="text-body-2 text-md-body-1">{{ order.customer_name }}</div>
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-2 mb-md-3">
                             <div class="text-caption text-grey">Email</div>
-                            <div class="text-body-1">{{ order.customer_email }}</div>
+                            <div class="text-body-2 text-md-body-1">{{ order.customer_email }}</div>
                         </div>
 
                         <div v-if="order.customer_phone">
                             <div class="text-caption text-grey">Teléfono</div>
-                            <div class="text-body-1">{{ order.customer_phone }}</div>
+                            <div class="text-body-2 text-md-body-1">{{ order.customer_phone }}</div>
                         </div>
                     </v-card-text>
                 </v-card>
 
                 <!-- Card de dirección de envío -->
-                <v-card>
-                    <v-card-title class="bg-grey-lighten-4">
-                        <v-icon class="mr-2">mdi-map-marker</v-icon>
+                <v-card class="mb-4 mb-md-6">
+                    <v-card-title class="bg-grey-lighten-4 text-subtitle-1 text-md-h6">
+                        <v-icon class="mr-2" :size="$vuetify.display.xs ? 'small' : 'default'">mdi-map-marker</v-icon>
                         Dirección de Envío
                     </v-card-title>
-                    <v-card-text class="pa-4">
-                        <p class="text-body-1" style="white-space: pre-line;">
+                    <v-card-text class="pa-3 pa-md-4">
+                        <p class="text-body-2 text-md-body-1" style="white-space: pre-line;">
                             {{ order.shipping_address }}
                         </p>
+                    </v-card-text>
+                </v-card>
+
+                <!-- Card de actualización de estado (solo admin/employee) -->
+                <v-card v-if="canUpdateStatus">
+                    <v-card-title class="bg-primary text-white text-subtitle-1 text-md-h6">
+                        <v-icon class="mr-2" color="white" :size="$vuetify.display.xs ? 'small' : 'default'">mdi-swap-horizontal</v-icon>
+                        Actualizar Estado
+                    </v-card-title>
+                    <v-card-text class="pa-3 pa-md-4">
+                        <v-select
+                            v-model="selectedStatus"
+                            :items="statusOptions"
+                            item-title="text"
+                            item-value="value"
+                            label="Estado de la orden"
+                            variant="outlined"
+                            density="comfortable"
+                            :disabled="isUpdatingStatus"
+                        ></v-select>
+
+                        <v-btn
+                            @click="updateOrderStatus"
+                            :loading="isUpdatingStatus"
+                            :disabled="isUpdatingStatus || selectedStatus === order.status"
+                            color="primary"
+                            block
+                            :size="$vuetify.display.xs ? 'default' : 'large'"
+                            prepend-icon="mdi-check"
+                        >
+                            Guardar Cambios
+                        </v-btn>
                     </v-card-text>
                 </v-card>
             </v-col>

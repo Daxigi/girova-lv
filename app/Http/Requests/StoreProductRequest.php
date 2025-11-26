@@ -16,6 +16,26 @@ class StoreProductRequest extends FormRequest
     }
 
     /**
+     * Preparar datos antes de la validación
+     * Convierte cadenas vacías a null para campos opcionales
+     */
+    protected function prepareForValidation(): void
+    {
+        // Convertir cadenas vacías a null
+        if ($this->has('imageUrl') && empty($this->imageUrl)) {
+            $this->merge(['imageUrl' => null]);
+        }
+
+        if ($this->has('description') && empty($this->description)) {
+            $this->merge(['description' => null]);
+        }
+
+        if ($this->has('purchasePrice') && empty($this->purchasePrice)) {
+            $this->merge(['purchasePrice' => null]);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
@@ -28,7 +48,7 @@ class StoreProductRequest extends FormRequest
             'price' => 'required|numeric|min:0',
             'purchasePrice' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'imageUrl' => 'nullable|url',
+            'imageUrl' => 'nullable|string',  // Acepta URLs completas o rutas relativas
             'status' => 'boolean',
             'category_id' => ['required', 'integer', Rule::exists('categories', 'id')],
             'type_id' => ['required', 'integer', Rule::exists('types', 'id')],
