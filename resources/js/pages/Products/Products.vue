@@ -5,14 +5,12 @@ import ProductGrid from '@/components/Products/ProductGrid.vue';
 import { useProducts } from '../../composables/useProducts';
 import type { Product } from '@/types';
 
-// Define props to receive products from Inertia
 const props = defineProps<{
   products: Product[];
   categories: Array<{ id: number; name: string; }>;
   types: Array<{ id: number; name: string; }>;
 }>();
 
-// Options for the new sort dropdown
 const sortOptions = [
     { text: 'Relevancia', value: 'default' },
     { text: 'Precio: Menor a Mayor', value: 'price_asc' },
@@ -20,7 +18,6 @@ const sortOptions = [
     { text: 'Nombre: A-Z', value: 'name_asc' },
 ];
 
-// Use the composable to get all the state and logic
 const {
     searchTerm,
     selectedCategory,
@@ -36,15 +33,12 @@ const {
   <v-container fluid>
 
     <v-row justify="center">
-      <!-- Columna Izquierda: Filtros y Búsqueda -->
       <v-col cols="12" md="3" class="pt-4">
         <div style="position: sticky; top: 100px;">
-          <!-- Search Bar -->
           <div class="mb-6">
             <ProductSearch v-model="searchTerm" />
           </div>
 
-          <!-- Sección de Filtros -->
           <v-card class="pa-4" elevation="2">
             <div class="d-flex justify-space-between align-center mb-4">
               <h3 class="text-h6" style="font-family: 'Playfair Display', serif; font-weight: 700; color: #000000;">
@@ -99,7 +93,6 @@ const {
         </div>
       </v-col>
 
-      <!-- Columna Derecha: Productos -->
       <v-col cols="12" md="9">
 
         <ProductGrid v-if="processedProducts.length > 0" :products="processedProducts" class="mt-4" />

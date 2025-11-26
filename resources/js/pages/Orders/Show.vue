@@ -1,21 +1,10 @@
 <script setup lang="ts">
-/**
- * ORDER DETAIL PAGE - Página de detalle de orden
- *
- * Muestra todos los detalles de una orden específica:
- * - Información del cliente
- * - Productos ordenados
- * - Estado de la orden
- * - Total
- */
+
 
 import { computed, ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import { formatDate, formatPrice} from '../../utils/formatters';
 
-/**
- * Props recibidas del backend
- */
 const props = defineProps<{
     order: {
         id: string;
@@ -42,9 +31,6 @@ const props = defineProps<{
     canUpdateStatus: boolean;
 }>();
 
-/**
- * Obtener color según el estado
- */
 function getStatusColor(status: string): string {
     const colors: Record<string, string> = {
         pending: 'warning',
@@ -56,9 +42,6 @@ function getStatusColor(status: string): string {
     return colors[status] || 'grey';
 }
 
-/**
- * Obtener texto del estado en español
- */
 function getStatusText(status: string): string {
     const texts: Record<string, string> = {
         pending: 'Pendiente',
@@ -70,9 +53,6 @@ function getStatusText(status: string): string {
     return texts[status] || status;
 }
 
-/**
- * Obtener icono según el estado
- */
 function getStatusIcon(status: string): string {
     const icons: Record<string, string> = {
         pending: 'mdi-clock-outline',
@@ -84,22 +64,13 @@ function getStatusIcon(status: string): string {
     return icons[status] || 'mdi-help-circle';
 }
 
-/**
- * Computed: Calcular subtotal de un item
- */
 function getItemSubtotal(item: any): number {
     return item.price * item.quantity;
 }
 
-/**
- * Estado seleccionado (reactivo)
- */
 const selectedStatus = ref(props.order.status);
 const isUpdatingStatus = ref(false);
 
-/**
- * Estados disponibles
- */
 const statusOptions = [
     { value: 'pending', text: 'Pendiente' },
     { value: 'processing', text: 'En Proceso' },
@@ -108,12 +79,9 @@ const statusOptions = [
     { value: 'cancelled', text: 'Cancelado' },
 ];
 
-/**
- * Actualizar el estado de la orden
- */
 function updateOrderStatus() {
     if (selectedStatus.value === props.order.status) {
-        return; // No cambió nada
+        return; 
     }
 
     isUpdatingStatus.value = true;
@@ -128,7 +96,7 @@ function updateOrderStatus() {
             },
             onError: () => {
                 isUpdatingStatus.value = false;
-                selectedStatus.value = props.order.status; // Revertir
+                selectedStatus.value = props.order.status; 
             },
         }
     );
@@ -137,7 +105,6 @@ function updateOrderStatus() {
 
 <template>
     <v-container class="py-4 py-md-8">
-        <!-- Header con título y botón volver -->
         <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center mb-4 mb-md-6 ga-3">
             <div class="flex-grow-1">
                 <h1 class="text-h5 text-md-h4">Orden #{{ order.id.substring(0, 8) }}</h1>
@@ -159,9 +126,7 @@ function updateOrderStatus() {
         </div>
 
         <v-row>
-            <!-- COLUMNA IZQUIERDA: Productos y detalles -->
             <v-col cols="12" md="8">
-                <!-- Card de productos -->
                 <v-card class="mb-4 mb-md-6">
                     <v-card-title class="bg-grey-lighten-4 d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center ga-2">
                         <span class="text-subtitle-1 text-md-h6">Productos</span>
@@ -217,7 +182,6 @@ function updateOrderStatus() {
 
                         <v-divider class="my-3 my-md-4"></v-divider>
 
-                        <!-- Total -->
                         <div class="d-flex justify-space-between align-center">
                             <span class="text-subtitle-1 text-md-h6">Total:</span>
                             <span class="text-h6 text-md-h5 font-weight-bold text-primary">
@@ -227,7 +191,6 @@ function updateOrderStatus() {
                     </v-card-text>
                 </v-card>
 
-                <!-- Card de notas (si existen) -->
                 <v-card v-if="order.notes">
                     <v-card-title class="bg-grey-lighten-4 text-subtitle-1 text-md-h6">
                         <v-icon class="mr-2" :size="$vuetify.display.xs ? 'small' : 'default'">mdi-note-text</v-icon>
@@ -239,9 +202,7 @@ function updateOrderStatus() {
                 </v-card>
             </v-col>
 
-            <!-- COLUMNA DERECHA: Información del cliente y envío -->
             <v-col cols="12" md="4">
-                <!-- Card de información del cliente -->
                 <v-card class="mb-4 mb-md-6">
                     <v-card-title class="bg-grey-lighten-4 text-subtitle-1 text-md-h6">
                         <v-icon class="mr-2" :size="$vuetify.display.xs ? 'small' : 'default'">mdi-account</v-icon>
@@ -265,7 +226,6 @@ function updateOrderStatus() {
                     </v-card-text>
                 </v-card>
 
-                <!-- Card de dirección de envío -->
                 <v-card class="mb-4 mb-md-6">
                     <v-card-title class="bg-grey-lighten-4 text-subtitle-1 text-md-h6">
                         <v-icon class="mr-2" :size="$vuetify.display.xs ? 'small' : 'default'">mdi-map-marker</v-icon>
@@ -278,7 +238,6 @@ function updateOrderStatus() {
                     </v-card-text>
                 </v-card>
 
-                <!-- Card de actualización de estado (solo admin/employee) -->
                 <v-card v-if="canUpdateStatus">
                     <v-card-title class="bg-primary text-white text-subtitle-1 text-md-h6">
                         <v-icon class="mr-2" color="white" :size="$vuetify.display.xs ? 'small' : 'default'">mdi-swap-horizontal</v-icon>

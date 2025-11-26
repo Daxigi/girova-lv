@@ -1,17 +1,9 @@
 <script setup lang="ts">
-/**
- * MY ORDERS PAGE - Página de mis órdenes
- *
- * Muestra todas las órdenes del usuario autenticado
- */
 
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import {formatDate, formatPrice} from '../../utils/formatters'
 
-/**
- * Props recibidas del backend
- */
 const props = defineProps<{
     orders: Array<{
         id: string;
@@ -38,9 +30,6 @@ const props = defineProps<{
     isAdminView: boolean;
 }>();
 
-/**
- * Obtener color según el estado
- */
 function getStatusColor(status: string): string {
     const colors: Record<string, string> = {
         pending: 'warning',
@@ -52,9 +41,6 @@ function getStatusColor(status: string): string {
     return colors[status] || 'grey';
 }
 
-/**
- * Obtener texto del estado en español
- */
 function getStatusText(status: string): string {
     const texts: Record<string, string> = {
         pending: 'Pendiente',
@@ -66,9 +52,6 @@ function getStatusText(status: string): string {
     return texts[status] || status;
 }
 
-/**
- * Obtener icono según el estado
- */
 function getStatusIcon(status: string): string {
     const icons: Record<string, string> = {
         pending: 'mdi-clock-outline',
@@ -80,9 +63,6 @@ function getStatusIcon(status: string): string {
     return icons[status] || 'mdi-help-circle';
 }
 
-/**
- * Computed: Verificar si hay órdenes
- */
 const hasOrders = computed(() => props.orders && props.orders.length > 0);
 </script>
 
@@ -103,7 +83,6 @@ const hasOrders = computed(() => props.orders && props.orders.length > 0);
             </v-btn>
         </div>
 
-        <!-- Mensaje si no hay órdenes -->
         <v-card v-if="!hasOrders" class="text-center pa-8">
             <v-icon size="80" color="grey-lighten-1" class="mb-4">
                 mdi-cart-outline
@@ -122,7 +101,6 @@ const hasOrders = computed(() => props.orders && props.orders.length > 0);
             </v-btn>
         </v-card>
 
-        <!-- Lista de órdenes -->
         <v-row v-else>
             <v-col
                 v-for="order in orders"
@@ -138,14 +116,12 @@ const hasOrders = computed(() => props.orders && props.orders.length > 0);
                             <div class="text-caption text-grey">
                                 {{ formatDate(order.created_at) }}
                             </div>
-                            <!-- Mostrar usuario si es vista admin -->
                             <div v-if="isAdminView && order.user" class="text-caption text-primary mt-1">
                                 <v-icon size="small" class="mr-1">mdi-account</v-icon>
                                 {{ order.user.name }} ({{ order.user.email }})
                             </div>
                         </div>
 
-                        <!-- Chip de estado -->
                         <v-chip
                             :color="getStatusColor(order.status)"
                             :prepend-icon="getStatusIcon(order.status)"
@@ -159,7 +135,6 @@ const hasOrders = computed(() => props.orders && props.orders.length > 0);
 
                     <v-card-text class="pa-3 pa-md-4">
                         <v-row>
-                            <!-- Columna izquierda: Productos -->
                             <v-col cols="12" md="8">
                                 <div class="text-subtitle-2 text-md-subtitle-1 mb-3">Productos:</div>
                                 <v-list density="compact">
@@ -193,7 +168,6 @@ const hasOrders = computed(() => props.orders && props.orders.length > 0);
                                 </v-list>
                             </v-col>
 
-                            <!-- Columna derecha: Total y acciones -->
                             <v-col cols="12" md="4">
                                 <v-card variant="outlined" class="pa-3 pa-md-4">
                                     <div class="text-subtitle-2 text-md-subtitle-1 mb-2">Total:</div>

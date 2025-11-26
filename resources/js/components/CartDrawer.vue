@@ -1,48 +1,19 @@
 <script setup lang="ts">
-/**
- * CART DRAWER - Panel lateral del carrito
- *
- * Este componente muestra el carrito de compras en un panel lateral
- * que se desliza desde la derecha.
- *
- * Funcionalidades:
- * - Ver productos agregados
- * - Cambiar cantidades
- * - Eliminar productos
- * - Ver total
- * - Vaciar carrito
- */
 
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { useCart } from '../composables/useCart';
 import {  formatPrice } from '@/utils/formatters';
 
-// Importar el composable del carrito
-// Esto nos da acceso a todas las funciones y estado del carrito
 const { cart, isCartOpen, toggleCart, removeFromCart, updateQuantity, clearCart } = useCart();
 
-/**
- * Computed: Total formateado
- *
- * Convierte el número del total a formato de moneda
- */
 const formattedTotal = computed(() => formatPrice(cart.value.total));
 
-/**
- * Manejar cambio de cantidad
- *
- * Cuando el usuario cambia el input de cantidad
- */
 function handleQuantityChange(productId: number | string, newQuantity: number) {
-    // Asegurar que la cantidad sea al menos 1
     const quantity = Math.max(1, newQuantity);
     updateQuantity(productId, quantity);
 }
 
-/**
- * Confirmar antes de vaciar el carrito
- */
 function handleClearCart() {
     if (confirm('¿Estás seguro de que deseas vaciar el carrito?')) {
         clearCart();
@@ -51,25 +22,14 @@ function handleClearCart() {
 </script>
 
 <template>
-    <!--
-        v-navigation-drawer: Componente de Vuetify para panel lateral
-
-        Props importantes:
-        - v-model: Controla si está abierto/cerrado (two-way binding)
-        - location="right": Se desliza desde la derecha
-        - temporary: Se cierra al hacer click fuera
-        - width: Ancho del drawer (responsivo: 90% en móvil, 400px en desktop)
-    -->
     <v-navigation-drawer
         v-model="isCartOpen"
         location="right"
         temporary
         :width="$vuetify.display.xs ? '90%' : 400"
     >
-        <!-- HEADER DEL CARRITO -->
         <v-toolbar color="primary" dark>
             <v-toolbar-title class="text-subtitle-1 text-md-h6">
-                <!-- Icono + Título + Badge con cantidad -->
                 <v-icon start :size="$vuetify.display.xs ? 'small' : 'default'">mdi-cart</v-icon>
                 Mi Carrito
                 <v-badge
@@ -81,13 +41,11 @@ function handleClearCart() {
                 />
             </v-toolbar-title>
             <v-spacer></v-spacer>
-            <!-- Botón para cerrar el drawer -->
             <v-btn icon @click="toggleCart" :size="$vuetify.display.xs ? 'small' : 'default'">
                 <v-icon>mdi-close</v-icon>
             </v-btn>
         </v-toolbar>
 
-        <!-- CONTENIDO DEL CARRITO -->
         <v-container class="pa-3 pa-md-4">
             <!-- CASO 1: Carrito vacío -->
             <div v-if="cart.items.length === 0" class="text-center py-6 py-md-8">
@@ -100,10 +58,6 @@ function handleClearCart() {
             <div v-else>
                 <!-- LISTA DE PRODUCTOS -->
                 <v-list lines="three">
-                    <!--
-                        v-for: Iterar sobre cada producto del carrito
-                        :key: Identificador único para Vue (optimización)
-                    -->
                     <v-list-item
                         v-for="item in cart.items"
                         :key="item.id"
@@ -137,7 +91,6 @@ function handleClearCart() {
                                 <v-icon :size="$vuetify.display.xs ? 'small' : 'default'">mdi-minus</v-icon>
                             </v-btn>
 
-                            <!-- Input de cantidad -->
                             <v-text-field
                                 :model-value="item.quantity"
                                 @update:model-value="(val) => handleQuantityChange(item.id, Number(val))"
@@ -161,13 +114,11 @@ function handleClearCart() {
                             </v-btn>
                         </div>
 
-                        <!-- SUBTOTAL DEL PRODUCTO -->
                         <v-list-item-subtitle class="mt-1 mt-md-2 text-caption text-md-body-2">
                             <strong>Subtotal:</strong> {{ formatPrice(item.price * item.quantity) }}
                         </v-list-item-subtitle>
 
                         <template v-slot:append>
-                            <!-- BOTÓN ELIMINAR -->
                             <v-btn
                                 icon
                                 :size="$vuetify.display.xs ? 'x-small' : 'small'"
@@ -220,16 +171,10 @@ function handleClearCart() {
 </template>
 
 <style scoped>
-/**
- * Estilos personalizados para el carrito
- */
-
-/* Asegurar que el texto del nombre del producto se ajuste */
 .v-list-item-title {
     white-space: normal !important;
 }
 
-/* Centrar el input de cantidad */
 .v-text-field {
     text-align: center;
 }

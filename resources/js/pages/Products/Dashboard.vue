@@ -6,19 +6,16 @@ import {useAuth} from '../../composables/useAuth';
 
 const { hasRole, hasPermission } = useAuth();
 
-// Define the props
 const props = defineProps({
     products: Array as () => any[],
 });
 
 
-// Placeholder functions for actions
 const editProduct = (id: string) => {
     router.get(route('products.edit', id));
 };
 
 const deleteProduct = (id: string) => {
-    // This will require a route to handle the deletion
     if (confirm('¿Estás seguro de que quieres dar de baja este producto?')) {
         router.delete(route('products.destroy', id), {
             preserveScroll: true,
@@ -30,7 +27,6 @@ const deleteProduct = (id: string) => {
 <template>
     <Head title="Girova - Dashboard de Productos" />
     <v-container>
-        <!-- Header del Dashboard con título y botón -->
         <div class="d-flex flex-column flex-md-row justify-space-between align-start align-md-center mb-8 ga-4">
             <div>
                 <h1 class="text-h4" style="font-family: 'Playfair Display', serif; font-weight: 700; letter-spacing: 0.05em; color: #000000;">
@@ -41,7 +37,6 @@ const deleteProduct = (id: string) => {
                 </p>
             </div>
 
-            <!-- Botón de crear producto con permisos -->
             <template v-if="hasRole('admin') || hasPermission('create products')">
                 <v-btn
                     color="black"
@@ -58,7 +53,6 @@ const deleteProduct = (id: string) => {
             </template>
         </div>
 
-        <!-- Tarjeta con estadísticas rápidas -->
         <v-card class="mb-8 pa-6" elevation="2" v-if="products && products.length > 0">
             <v-row>
                 <v-col cols="12" md="4">
@@ -97,7 +91,6 @@ const deleteProduct = (id: string) => {
             </v-row>
         </v-card>
 
-        <!-- Título de sección de productos -->
         <div class="mb-4" v-if="products && products.length > 0">
             <h2 class="text-h5" style="font-family: 'Playfair Display', serif; font-weight: 700; color: #000000;">
                 Lista de Productos
@@ -134,7 +127,6 @@ const deleteProduct = (id: string) => {
                     :color="product.stock === 0 ? 'red-lighten-4' : undefined"
                     :class="{ 'out-of-stock-card': product.stock === 0 }"
                 >
-                    <!-- Layout en móvil: columna -->
                     <div class="d-flex d-md-none flex-column">
                         <div class="d-flex justify-space-between align-center pa-3">
                             <v-avatar size="80" rounded="lg">
@@ -173,7 +165,6 @@ const deleteProduct = (id: string) => {
                         </v-card-actions>
                     </div>
 
-                    <!-- Layout en desktop: fila -->
                     <div class="d-none d-md-flex justify-space-between">
                         <div class="d-flex">
                             <v-avatar class="ma-3" size="120" rounded="lg">

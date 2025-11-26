@@ -1,33 +1,27 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-// Carrusel items con tema blanco y negro
 const carouselItems = ref([
     {
         title: 'Bienvenido a Girova',
-        // subtitle: 'Calidad y estilo en cada producto',
         image: "/storage/products/anillo1.jpg",
     },
     {
         title: 'Nuevas Colecciones',
-        // subtitle: 'Descubre nuestros últimos productos',
         image: "/storage/products/anillo2.jpg",
     },
     {
         title: 'Ofertas Especiales',
-        // subtitle: 'No te pierdas nuestras promociones',
         image: "/storage/products/anillo3.jpg",
     },
     {
         title: 'Girova',
-        // subtitle: 'Elegancia en blanco y negro',
         image: "/storage/products/aro1.jpg",
     },
 ]);
 </script>
 
 <template>
-        <!-- Carrusel de imágenes -->
         <v-card class="mb-12" elevation="8">
       <v-carousel
         cycle
@@ -43,7 +37,6 @@ const carouselItems = ref([
           :src="item.image"
           cover
         >
-          <!-- Overlay oscuro semi-transparente para mejorar la legibilidad del texto -->
           <div
             class="d-flex align-center justify-center"
             style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4);"
@@ -52,9 +45,6 @@ const carouselItems = ref([
               <h2 class="text-h2 font-weight-bold mb-6" style="font-family: 'Playfair Display', serif; color: white; text-shadow: 2px 2px 8px rgba(0,0,0,0.9); letter-spacing: 0.1em;">
                 {{ item.title }}
               </h2>
-              <!-- <p class="text-h5" style="color: white; text-shadow: 1px 1px 4px rgba(0,0,0,0.8); letter-spacing: 0.05em;">
-                {{ item.subtitle }}
-              </p> -->
             </div>
           </div>
         </v-carousel-item>

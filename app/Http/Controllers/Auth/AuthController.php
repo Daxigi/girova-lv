@@ -16,17 +16,11 @@ use Inertia\Inertia;
 
 class AuthController extends Controller
 {
-    /**
-     * Mostrar el formulario de login
-     */
     public function showLoginForm()
     {
         return Inertia::render('Users/Login');
     }
 
-    /**
-     * Procesar el login
-     */
     public function login(LoginRequest $request)
     {
         $credentials = $request->only('email', 'password');
@@ -38,16 +32,11 @@ class AuthController extends Controller
             return redirect()->intended('/')->with('success', 'Has iniciado sesión exitosamente.');
         }
 
-        // Registrar intento fallido para rate limiting basado en email
-        // Esto ayuda a prevenir ataques de fuerza bruta en cuentas específicas
         return back()->withErrors([
             'email' => 'Las credenciales proporcionadas no coinciden con nuestros registros.',
         ])->onlyInput('email');
     }
 
-    /**
-     * Cerrar sesión
-     */
     public function logout(Request $request)
     {
         Auth::logout();
@@ -58,9 +47,6 @@ class AuthController extends Controller
         return redirect('/')->with('success', 'Has cerrado sesión exitosamente.');
     }
 
-    /**
-     * Mostrar aviso de verificación de email
-     */
     public function showVerifyNotice(Request $request)
     {
         return $request->user()->hasVerifiedEmail()
@@ -68,9 +54,6 @@ class AuthController extends Controller
             : Inertia::render('Auth/VerifyEmail');
     }
 
-    /**
-     * Verificar email del usuario
-     */
     public function verifyEmail(Request $request)
     {
         $user = $request->user();
@@ -86,9 +69,6 @@ class AuthController extends Controller
         return redirect()->intended('/')->with('success', 'Email verificado exitosamente.');
     }
 
-    /**
-     * Reenviar email de verificación
-     */
     public function resendVerification(Request $request)
     {
         if ($request->user()->hasVerifiedEmail()) {
@@ -100,17 +80,11 @@ class AuthController extends Controller
         return back()->with('success', 'Email de verificación reenviado.');
     }
 
-    /**
-     * Mostrar formulario de solicitud de reset de contraseña
-     */
     public function showForgotPasswordForm()
     {
         return Inertia::render('Auth/ForgotPassword');
     }
 
-    /**
-     * Enviar email con link de reset de contraseña
-     */
     public function sendResetLinkEmail(Request $request)
     {
         $request->validate([
@@ -132,9 +106,6 @@ class AuthController extends Controller
         return back()->withErrors(['email' => __($status)]);
     }
 
-    /**
-     * Mostrar formulario de reset de contraseña
-     */
     public function showResetPasswordForm(Request $request, string $token)
     {
         return Inertia::render('Auth/ResetPassword', [
@@ -143,9 +114,6 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Resetear la contraseña
-     */
     public function resetPassword(Request $request)
     {
         $request->validate([

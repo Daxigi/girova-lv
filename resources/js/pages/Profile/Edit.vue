@@ -35,7 +35,6 @@ async function submit() {
     form.put(route('profile.update'), {
         preserveScroll: true,
         onSuccess: () => {
-            // Limpiar campos de contraseña después de actualizar
             form.current_password = '';
             form.password = '';
             form.password_confirmation = '';
@@ -56,7 +55,6 @@ async function submit() {
                     </v-card-title>
 
                     <v-card-text class="pa-6">
-                        <!-- Mensajes de éxito o error -->
                         <v-alert
                             v-if="$page.props.flash?.success"
                             type="success"
@@ -67,7 +65,6 @@ async function submit() {
                         </v-alert>
 
                         <v-form ref="formRef" @submit.prevent="submit">
-                            <!-- Nombre -->
                             <v-text-field
                                 v-model="form.name"
                                 label="Nombre completo"
@@ -79,7 +76,6 @@ async function submit() {
                                 class="mb-4"
                             ></v-text-field>
 
-                            <!-- Email -->
                             <v-text-field
                                 v-model="form.email"
                                 label="Correo electrónico"
@@ -94,7 +90,6 @@ async function submit() {
 
                             <v-divider class="my-6"></v-divider>
 
-                            <!-- Botón para mostrar campos de contraseña -->
                             <v-btn
                                 v-if="!showPasswordFields"
                                 @click="showPasswordFields = true"
@@ -107,13 +102,11 @@ async function submit() {
                                 Cambiar Contraseña
                             </v-btn>
 
-                            <!-- Campos de contraseña (si está activo) -->
                             <div v-if="showPasswordFields">
                                 <p class="text-subtitle-2 mb-4 text-grey-darken-1">
                                     Cambiar contraseña (opcional)
                                 </p>
 
-                                <!-- Contraseña actual -->
                                 <v-text-field
                                     v-model="form.current_password"
                                     label="Contraseña actual"
@@ -125,7 +118,6 @@ async function submit() {
                                     class="mb-4"
                                 ></v-text-field>
 
-                                <!-- Nueva contraseña -->
                                 <v-text-field
                                     v-model="form.password"
                                     label="Nueva contraseña"
@@ -139,7 +131,6 @@ async function submit() {
                                     class="mb-4"
                                 ></v-text-field>
 
-                                <!-- Confirmar nueva contraseña -->
                                 <v-text-field
                                     v-model="form.password_confirmation"
                                     label="Confirmar nueva contraseña"
@@ -164,7 +155,6 @@ async function submit() {
 
                             <v-divider class="my-6"></v-divider>
 
-                            <!-- Botones de acción -->
                             <div class="d-flex ga-4">
                                 <v-btn
                                     type="submit"

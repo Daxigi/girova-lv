@@ -1,26 +1,19 @@
 import { ref, computed } from 'vue';
-// Asumiremos que tienes un tipo Product, si no, podemos definirlo.
-// Por ahora, usaré `any` para simplificar.
 import type { Product } from '@/types';
 
 
 export function useProducts(initialProducts: Product[]) {
-    // --- ESTADO DE FILTROS Y ORDEN ---
 
-    // Filtros existentes
     const searchTerm = ref('');
     const selectedCategory = ref<number | null>(null);
     const selectedType = ref<number | null>(null);
 
-    // NUEVO: Estado para el ordenamiento
-    const sortBy = ref('default'); // Valor por defecto
+    const sortBy = ref('default'); 
 
-    // --- LÓGICA COMPUTADA ---
 
     const processedProducts = computed(() => {
-        let products = [...initialProducts]; // Copiamos para no mutar el original
+        let products = [...initialProducts]; 
 
-        // 1. LÓGICA DE FILTRADO (como antes, pero sin precios)
         if (searchTerm.value) {
             const lowerCaseSearchTerm = searchTerm.value.toLowerCase();
             products = products.filter(p =>
@@ -35,7 +28,6 @@ export function useProducts(initialProducts: Product[]) {
             products = products.filter(p => p.type?.id === selectedType.value);
         }
 
-        // 2. NUEVA LÓGICA DE ORDENAMIENTO
         const sortOption = sortBy.value;
         if (sortOption === 'price_asc') {
             products.sort((a, b) => a.price - b.price);
@@ -44,28 +36,25 @@ export function useProducts(initialProducts: Product[]) {
         } else if (sortOption === 'name_asc') {
             products.sort((a, b) => a.name.localeCompare(b.name));
         }
-        // No necesitamos un caso para 'default', se mantendrá el orden original.
 
         return products;
     });
 
-    // --- MÉTODOS ---
 
     const clearFilters = () => {
         searchTerm.value = '';
         selectedCategory.value = null;
         selectedType.value = null;
-        sortBy.value = 'default'; // También reseteamos el orden
+        sortBy.value = 'default'; 
     };
 
-    // --- EXPORTACIÓN ---
 
     return {
         // Estado
         searchTerm,
         selectedCategory,
         selectedType,
-        sortBy, // Exponemos el nuevo estado
+        sortBy, 
 
         // Datos procesados
         processedProducts,

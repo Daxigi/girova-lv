@@ -29,7 +29,6 @@ async function submit() {
     form.post(route('login'), {
         preserveScroll: true,
         onSuccess: () => {
-            // Redirigirá automáticamente
         },
         onError: (errors) => {
             form.errors = errors;

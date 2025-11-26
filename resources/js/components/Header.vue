@@ -7,10 +7,8 @@ import {useAuth} from '../composables/useAuth';
 
 const {user, hasRole, hasPermission} = useAuth();
 
-// Composable del carrito
 const { itemCount, toggleCart } = useCart();
 
-// Control del menú móvil
 const drawer = ref(false);
 
 function logout() {
@@ -24,7 +22,6 @@ function navigateAndClose(url: string) {
 </script>
 
 <template>
-  <!-- Navigation Drawer para móvil -->
   <v-navigation-drawer v-model="drawer" temporary location="right">
     <v-list>
       <v-list-item>
@@ -34,7 +31,6 @@ function navigateAndClose(url: string) {
       </v-list-item>
       <v-divider></v-divider>
 
-      <!-- Navegación principal -->
       <v-list-item @click="navigateAndClose('/')">
         <template v-slot:prepend>
           <v-icon>mdi-home</v-icon>
@@ -49,7 +45,6 @@ function navigateAndClose(url: string) {
         <v-list-item-title>Productos</v-list-item-title>
       </v-list-item>
 
-      <!-- Si está autenticado -->
       <template v-if="user">
         <v-divider class="my-2"></v-divider>
 
@@ -87,7 +82,6 @@ function navigateAndClose(url: string) {
         </v-list-item>
       </template>
 
-      <!-- Si NO está autenticado -->
       <template v-else>
         <v-divider class="my-2"></v-divider>
 
@@ -108,9 +102,7 @@ function navigateAndClose(url: string) {
     </v-list>
   </v-navigation-drawer>
 
-  <!-- App Bar -->
   <v-app-bar color="primary" elevation="2">
-    <!-- Logo -->
     <v-toolbar-title class="pl-2 pl-md-4">
         <Link href="/" class="text-white" style="text-decoration: none; font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 800; letter-spacing: 0.05em;">
             GIROVA
@@ -119,12 +111,10 @@ function navigateAndClose(url: string) {
 
     <v-spacer></v-spacer>
 
-    <!-- Botones Desktop (ocultos en móvil) -->
     <div class="d-none d-md-flex align-center">
       <v-btn @click="() => router.visit('/')" text>Inicio</v-btn>
       <v-btn @click="() => router.visit('/products/show')" text>Productos</v-btn>
 
-      <!-- Usuario autenticado -->
       <template v-if="user">
         <v-menu>
           <template v-slot:activator="{ props }">
@@ -159,14 +149,12 @@ function navigateAndClose(url: string) {
         </v-menu>
       </template>
 
-      <!-- Usuario no autenticado -->
       <template v-else>
         <v-btn @click="() => router.visit('/login')" text>Iniciar Sesión</v-btn>
         <v-btn @click="() => router.visit('/users/create')" text>Registrarme</v-btn>
       </template>
     </div>
 
-    <!-- Botón del Carrito (siempre visible) -->
     <v-btn icon @click="toggleCart" class="mr-1 mr-md-2">
       <v-badge
         :content="itemCount"
@@ -178,7 +166,6 @@ function navigateAndClose(url: string) {
       </v-badge>
     </v-btn>
 
-    <!-- Botón menú hamburguesa (solo móvil) -->
     <v-btn icon @click="drawer = !drawer" class="d-md-none">
       <v-icon>mdi-menu</v-icon>
     </v-btn>

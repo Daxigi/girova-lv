@@ -15,10 +15,8 @@ class ProductController extends Controller
 {
 
     public function showProducts(){
-        // Obtener todos los productos con sus relaciones
         $products = Product::with(['category', 'type'])->get();
 
-        // Obtener todas las categorías y tipos para los filtros
         $categories = Category::all();
         $types = Type::all();
 
@@ -45,9 +43,6 @@ class ProductController extends Controller
             'types' => $types,
         ]);
     }
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $this->authorize('create', Product::class);
@@ -61,9 +56,6 @@ class ProductController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreProductRequest $request)
     {
         $this->authorize('create', Product::class);
@@ -73,22 +65,16 @@ class ProductController extends Controller
         return redirect()->route('home')->with('success', 'Producto creado exitosamente.');
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function dashboard()
     {
         $this->authorize('viewAny', Product::class);
 
-        $products = Product::with(['category', 'type'])->latest()->get(); // Fetch products, newest first
+        $products = Product::with(['category', 'type'])->latest()->get(); 
         return Inertia::render('Products/Dashboard', [
             'products' => $products
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Product $product)
     {
         $this->authorize('update', $product);
@@ -100,17 +86,12 @@ class ProductController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(StoreProductRequest $request, Product $product)
     {
         $this->authorize('update', $product);
 
-        // Obtener datos validados
         $data = $request->validated();
 
-        // Si imageUrl es null o está vacía, no la actualices (mantén la existente)
         if (empty($data['imageUrl'])) {
             unset($data['imageUrl']);
         }
@@ -120,9 +101,6 @@ class ProductController extends Controller
         return redirect()->route('products.dashboard')->with('success', 'Producto actualizado exitosamente.');
     }
 
-    /**
-     * Soft delete the specified resource from storage.
-     */
     public function softDestroy(Product $product)
     {
         $this->authorize('delete', $product);
@@ -132,9 +110,6 @@ class ProductController extends Controller
         return redirect()->route('products.dashboard')->with('success', 'Producto dado de baja exitosamente.');
     }
 
-    /**
-     * Force delete the specified resource from storage.
-     */
     public function forceDestroy(Product $product)
     {
         $this->authorize('delete', $product);
